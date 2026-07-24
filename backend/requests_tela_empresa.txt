@@ -1,0 +1,382 @@
+====================================================
+  NEXTCALENDAR — REQUESTS DA TELA "EMPRESA"
+  Módulo: Estabelecimento (UC01)
+  Base URL: http://localhost:8080/api/v1
+====================================================
+
+
+----------------------------------------------------
+📌 CARD 1 — Consultar CEP (ao sair do campo CEP)
+----------------------------------------------------
+Endpoint : GET /cep/{cep}
+Exemplo  : GET http://localhost:8080/api/v1/cep/01001000
+
+Headers:
+  Content-Type: application/json
+
+Resposta de sucesso (200):
+{
+  "cep": "01001-000",
+  "logradouro": "Praça da Sé",
+  "complemento": "lado ímpar",
+  "bairro": "Sé",
+  "localidade": "São Paulo",
+  "uf": "SP",
+  "erro": null
+}
+
+Erros:
+  422 — CEP inválido ou não encontrado
+  (Frontend exibe campos manuais de rua/cidade/estado quando 422)
+
+
+----------------------------------------------------
+📌 CARD 2 — Cadastrar Estabelecimento (UC01)
+----------------------------------------------------
+Endpoint : POST /establishments
+Body     : application/json
+
+Request body:
+{
+  "ownerId": "uuid-do-usuario-logado",
+  "legalName": "Studio Vision Ltda",
+  "name": "Studio Vision",
+  "cnpj": "00000000000001",
+  "phone": "(99) 99999-9999",
+  "whatsapp": "(99) 99999-9999",
+  "email": "joao.silva@gmail.com",
+  "businessType": "Barbearia",
+  "address": {
+    "cep": "99999999",
+    "number": "999",
+    "complement": "Loja 99",
+    "street": null,
+    "neighborhood": null,
+    "city": null,
+    "state": null
+  },
+  "termsAccepted": true
+}
+
+OBS: street/neighborhood/city/state são opcionais.
+     Preencher APENAS se a API de CEP estiver indisponível (preenchimento manual).
+
+Resposta de sucesso (201):
+{
+  "id": "uuid-gerado",
+  "ownerId": "uuid-do-usuario-logado",
+  "legalName": "Studio Vision Ltda",
+  "name": "Studio Vision",
+  "cnpj": "00000000000001",
+  "phone": "(99) 99999-9999",
+  "whatsapp": "(99) 99999-9999",
+  "email": "joao.silva@gmail.com",
+  "businessType": "Barbearia",
+  "logoUrl": null,
+  "address": {
+    "cep": "99999999",
+    "street": "Rua Blabla",
+    "number": "999",
+    "complement": "Loja 99",
+    "neighborhood": "Centro",
+    "city": "Eldorado",
+    "state": "SP"
+  },
+  "trialStartDate": "2026-07-24T19:00:00",
+  "trialEndDate": "2026-08-23T19:00:00",
+  "trialActive": true,
+  "termsAccepted": true,
+  "termsAcceptedAt": "2026-07-24T19:00:00",
+  "active": true,
+  "createdAt": "2026-07-24T19:00:00",
+  "updatedAt": "2026-07-24T19:00:00"
+}
+
+Erros:
+  400 — Termos não aceitos / campo obrigatório ausente / CNPJ formato inválido
+  409 — CNPJ já cadastrado no sistema
+  422 — CEP inválido ou não encontrado
+
+
+----------------------------------------------------
+📌 CARD 3 — Buscar dados do Estabelecimento
+         (ao abrir a tela "Empresa")
+----------------------------------------------------
+Endpoint : GET /establishments/{id}
+Exemplo  : GET http://localhost:8080/api/v1/establishments/uuid-do-establishment
+
+Resposta de sucesso (200):
+{
+  "id": "uuid-do-establishment",
+  "ownerId": "uuid-do-usuario",
+  "legalName": "Studio Vision Ltda",
+  "name": "Studio Vision",
+  "cnpj": "00000000000001",
+  "phone": "(99) 99999-9999",
+  "whatsapp": "(99) 99999-9999",
+  "email": "joao.silva@gmail.com",
+  "businessType": "Barbearia",
+  "logoUrl": null,
+  "address": {
+    "cep": "99999999",
+    "street": "Rua Blabla",
+    "number": "999",
+    "complement": "Loja 99",
+    "neighborhood": "Centro",
+    "city": "Eldorado",
+    "state": "SP"
+  },
+  "trialStartDate": "2026-07-24T19:00:00",
+  "trialEndDate": "2026-08-23T19:00:00",
+  "trialActive": true,
+  "termsAccepted": true,
+  "termsAcceptedAt": "2026-07-24T19:00:00",
+  "active": true,
+  "createdAt": "2026-07-24T19:00:00",
+  "updatedAt": "2026-07-24T19:00:00"
+}
+
+Erros:
+  404 — Estabelecimento não encontrado
+
+
+----------------------------------------------------
+📌 CARD 4 — Atualizar Estabelecimento
+         (botão "Salvar" na tela "Empresa")
+----------------------------------------------------
+Endpoint : PUT /establishments/{id}
+Exemplo  : PUT http://localhost:8080/api/v1/establishments/uuid-do-establishment
+Body     : application/json
+
+Request body (todos os campos são opcionais — só envia o que mudou):
+{
+  "legalName": "Studio Vision Ltda",
+  "name": "Studio Vision",
+  "phone": "(99) 99999-9999",
+  "whatsapp": "(99) 99999-9999",
+  "email": "joao.silva@gmail.com",
+  "businessType": "Barbearia",
+  "logoUrl": null,
+  "address": {
+    "cep": "99999999",
+    "number": "999",
+    "complement": "Loja 99",
+    "street": null,
+    "neighborhood": null,
+    "city": null,
+    "state": null
+  }
+}
+
+OBS: CNPJ NÃO pode ser alterado após o cadastro.
+     Se o CEP mudar, o sistema re-consulta o ViaCEP automaticamente.
+
+Resposta de sucesso (200):
+  (mesmo formato do GET)
+
+Erros:
+  400 — E-mail inválido
+  404 — Estabelecimento não encontrado
+  422 — CEP inválido (se o CEP foi alterado)
+
+
+----------------------------------------------------
+📌 CARD 5 — Desativar Estabelecimento (Soft Delete)
+----------------------------------------------------
+Endpoint : DELETE /establishments/{id}
+Exemplo  : DELETE http://localhost:8080/api/v1/establishments/uuid-do-establishment
+
+Resposta de sucesso (204): sem corpo
+
+Erros:
+  404 — Estabelecimento não encontrado
+
+
+====================================================
+  REGRAS DE NEGÓCIO — UC01 a UC06
+====================================================
+
+✅ termsAccepted deve ser TRUE para criar o establishment
+✅ CNPJ é normalizado (remove pontuação) e validado (14 dígitos)
+✅ CNPJ duplicado retorna 409 Conflict
+✅ Trial de 30 dias iniciado automaticamente na criação
+✅ Profile GESTOR criado automaticamente junto com o establishment
+✅ CEP inválido retorna 422 Unprocessable Entity
+✅ API de CEP indisponível → frontend envia street/city/state manualmente
+✅ CNPJ não pode ser atualizado após o cadastro
+✅ Delete é soft (campo active=false, não remove do banco)
+✅ Validação de campos retorna 422 (UC06)
+✅ Scheduler roda diariamente às 08:00 verificando trials
+
+====================================================
+
+
+====================================================
+  UC02 a UC06 — NOVOS CARDS DO TRELLO
+====================================================
+
+
+----------------------------------------------------
+📌 CARD 6 — Consultar CEP (UC02)
+         (reutiliza CARD 1 — já implementado)
+----------------------------------------------------
+Endpoint : GET /cep/{cep}
+Exemplo  : GET http://localhost:8080/api/v1/cep/01001000
+
+Respostas:
+  200 — CEP encontrado (preenchimento automático)
+  422 — CEP não encontrado ou formato inválido
+  422 — API ViaCEP indisponível (com msg: "preencha manualmente")
+
+Obs: Quando retornar 422 por API indisponível, o frontend
+     deve habilitar os campos street/neighborhood/city/state
+     para preenchimento manual e enviar no body do POST/PUT.
+
+
+----------------------------------------------------
+📌 CARD 7 — Obter Establishment do Proprietário (UC03)
+----------------------------------------------------
+Endpoint : GET /establishments/owner/{ownerId}
+Exemplo  : GET http://localhost:8080/api/v1/establishments/owner/uuid-do-usuario
+
+Resposta de sucesso (200):
+{
+  "id": "uuid-do-establishment",
+  "ownerId": "uuid-do-usuario",
+  "legalName": "Studio Vision Ltda",
+  "name": "Studio Vision",
+  "cnpj": "00000000000001",
+  "phone": "(99) 99999-9999",
+  "whatsapp": "(99) 99999-9999",
+  "email": "joao.silva@gmail.com",
+  "businessType": "Barbearia",
+  "logoUrl": null,
+  "address": {
+    "cep": "99999999",
+    "street": "Rua Blabla",
+    "number": "999",
+    "complement": "Loja 99",
+    "neighborhood": "Centro",
+    "city": "Eldorado",
+    "state": "SP"
+  },
+  "trialStartDate": "2026-07-24T19:00:00",
+  "trialEndDate": "2026-08-23T19:00:00",
+  "trialActive": true,
+  "termsAccepted": true,
+  "termsAcceptedAt": "2026-07-24T19:00:00",
+  "active": true,
+  "createdAt": "2026-07-24T19:00:00",
+  "updatedAt": "2026-07-24T19:00:00"
+}
+
+Erros:
+  404 — Nenhum establishment ativo vinculado ao ownerId
+
+
+----------------------------------------------------
+📌 CARD 8 — Aceitar Termos de Uso (UC04)
+----------------------------------------------------
+Endpoint : PATCH /establishments/{id}/terms
+Exemplo  : PATCH http://localhost:8080/api/v1/establishments/uuid-do-establishment/terms
+
+Sem body — apenas o PATCH já registra o aceite.
+
+Resposta de sucesso (200):
+  (mesmo formato do GET, com termsAccepted=true e termsAcceptedAt preenchido)
+
+Erros:
+  404 — Estabelecimento não encontrado
+
+Obs (UC04 fluxo 2a — recusa):
+  Para recusar, basta NÃO chamar este endpoint.
+  O sistema mantém termsAccepted=false e funcionalidades bloqueadas.
+
+
+----------------------------------------------------
+📌 CARD 9 — Verificar Status do Trial (UC05)
+----------------------------------------------------
+Endpoint : GET /establishments/{id}/trial
+Exemplo  : GET http://localhost:8080/api/v1/establishments/uuid-do-establishment/trial
+
+Resposta de sucesso (200):
+{
+  "establishmentId": "uuid-do-establishment",
+  "trialStartDate": "2026-07-24T19:00:00",
+  "trialEndDate": "2026-08-23T19:00:00",
+  "daysRemaining": 30,
+  "trialActive": true,
+  "warningActive": false,
+  "trialExpired": false
+}
+
+Campos:
+  daysRemaining — dias restantes (0 se expirado)
+  trialActive   — true enquanto dentro do período
+  warningActive — true quando daysRemaining <= 7 (exibir banner de aviso)
+  trialExpired  — true quando o trial venceu (bloquear funcionalidades premium)
+
+Erros:
+  404 — Estabelecimento não encontrado
+
+Obs (scheduler automático):
+  O backend verifica diariamente às 08:00 e:
+  - Loga aviso para establishments com <= 7 dias restantes
+  - Loga expirados para envio de e-mail de upgrade
+  (integração com e-mail a implementar no módulo de notificações)
+
+
+----------------------------------------------------
+📌 CARD 10 — Atualizar Dados do Estabelecimento (UC06)
+          (reutiliza CARD 4 — já implementado)
+----------------------------------------------------
+Endpoint : PUT /establishments/{id}
+Exemplo  : PUT http://localhost:8080/api/v1/establishments/uuid-do-establishment
+
+Request body (campos opcionais — só envia o que mudou):
+{
+  "legalName": "Studio Vision Ltda",
+  "name": "Studio Vision",
+  "phone": "(99) 99999-9999",
+  "whatsapp": "(99) 99999-9999",
+  "email": "joao.silva@gmail.com",
+  "businessType": "Barbearia",
+  "logoUrl": null,
+  "address": {
+    "cep": "99999999",
+    "number": "999",
+    "complement": "Loja 99"
+  }
+}
+
+Respostas:
+  200 — Atualizado com sucesso
+  404 — Estabelecimento não encontrado
+  422 — Dados inválidos (UC06 fluxo 3a: e-mail mal formatado, etc.)
+
+Obs: CNPJ NÃO aparece neste request — não pode ser alterado após cadastro.
+
+
+====================================================
+  RESUMO DE STATUS HTTP POR UC
+====================================================
+
+UC01 — Cadastrar Estabelecimento:
+  201 Criado | 400 Termos/CNPJ | 409 CNPJ duplicado | 422 CEP inválido
+
+UC02 — Validar CEP:
+  200 OK | 422 CEP não encontrado | 422 API indisponível
+
+UC03 — Obter Establishment do Proprietário:
+  200 OK | 404 Não encontrado
+
+UC04 — Aceitar Termos de Uso:
+  200 OK | 404 Não encontrado
+
+UC05 — Verificar Status do Trial:
+  200 OK (com daysRemaining/warningActive/trialExpired) | 404
+
+UC06 — Atualizar Dados:
+  200 OK | 404 Não encontrado | 422 Dados inválidos
+
+====================================================

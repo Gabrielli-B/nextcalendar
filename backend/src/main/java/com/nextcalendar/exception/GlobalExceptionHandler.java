@@ -20,6 +20,7 @@ public class GlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    // UC06 — Dados inválidos (falha de validação de campos) → 422 Unprocessable Entity
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<List<ValidationErrorResponseDTO>> handleValidationException(MethodArgumentNotValidException ex){
         List<ValidationErrorResponseDTO> errors = ex.getBindingResult()
@@ -32,7 +33,7 @@ public class GlobalExceptionHandler {
                 ))
                 .toList();
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(errors);
     }
 
@@ -40,6 +41,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleBusinessException(BusinessException ex) {
         return  ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
+    }
+
+    // UC01 — Fluxo alternativo 2a: CNPJ já cadastrado → 409 Conflict
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<String> handleDuplicateResource(DuplicateResourceException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ex.getMessage());
+    }
+
+    // UC01 — Fluxo alternativo 6a: CEP inválido → 422 Unprocessable Entity
+    @ExceptionHandler(CepInvalidException.class)
+    public ResponseEntity<String> handleCepInvalid(CepInvalidException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(ex.getMessage());
     }
 
