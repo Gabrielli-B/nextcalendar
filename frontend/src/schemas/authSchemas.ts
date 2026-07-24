@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const LoginSchema = z.object({
     email: z.email('Email invalido'),
-    password:z.string().min(8,'A senha precisa ter no minimo 8 caracteres'),
+    password:z.string().min(6,'A senha precisa ter no minimo 6 caracteres'),
 });
 
 export const RegisterSchema = z.object({
@@ -10,9 +10,7 @@ export const RegisterSchema = z.object({
     email:z.email('Email inválido'),
     phone:z.string().regex(/^\d{10,11}$/,'Telefone inválido(DDD + número)'),
     password:z.string()
-    .min(8,'Mínimo 8 caracteres')
-    .regex(/[A-Z]/, 'Precisa de ao menos 1 letra maiúscula')
-    .regex(/[0-9]/, 'Precisa de ao menos 1 número'),
+    .min(6,'Mínimo 6 caracteres'),
     dateOfBirth: z.coerce.date(),
 })
 

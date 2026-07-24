@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAuth } from '@/context/AuthContext';
 import { BellIcon, LocationPinIcon } from '@/components/icons';
 import { BarberCard, Barber } from '@/components/ui/BarberCard';
 import { CategoryPill } from '@/components/ui/CategoryPill';
@@ -61,7 +62,7 @@ export default function HomeScreen() {
             <LocationPinIcon size={14} />
             <Text style={[styles.locationText, { fontFamily: fontRegular }]}>São Leopoldo - RS</Text>
           </View>
-          <Text style={[styles.greeting, { fontFamily: fontSemiBold }]}>Bom dia, Glaucio 👋</Text>
+          <Text style={[styles.greeting, { fontFamily: fontSemiBold }]}>Bom dia, {user?.name?.split(' ')[0] || 'Visitante'} 👋</Text>
         </View>
         <TouchableOpacity style={styles.bellButton}>
           <BellIcon size={22} />

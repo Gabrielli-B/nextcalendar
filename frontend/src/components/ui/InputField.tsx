@@ -24,6 +24,7 @@ interface InputFieldProps {
   label: string;
   value: string;
   onChangeText: (text: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   keyboardType?: KeyboardTypeOptions;
   secureTextEntry?: boolean;
@@ -36,6 +37,7 @@ export function InputField({
   label,
   value,
   onChangeText,
+  onBlur,
   placeholder,
   keyboardType = 'default',
   secureTextEntry = false,
@@ -54,6 +56,7 @@ export function InputField({
           style={[styles.input, { fontFamily: fontRegular, flex: 1 }]}
           value={value}
           onChangeText={onChangeText}
+          onBlur={onBlur}
           placeholder={placeholder}
           placeholderTextColor={Colors.grey400}
           secureTextEntry={secureTextEntry && !passwordVisible}

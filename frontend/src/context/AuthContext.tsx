@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { getStorageItemAsync, setStorageItemAsync, deleteStorageItemAsync } from '../utils/storage';
 import { login as loginService } from '../services/authServices';
 
 type User = {
@@ -21,21 +21,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  //useEffect(() => {
-    //SecureStore.getItemAsync('authToken').then((token) => {
+  useEffect(() => {
+    getStorageItemAsync('authToken').then((token) => {
       // TODO: se tiver token salvo, validar com o back e restaurar o usuário
-      //setIsLoading(false);
-    //});
-  //}, []);
+      setIsLoading(false);
+    });
+  }, []);
 
   async function signIn(email: string, password: string) {
     const { token, user } = await loginService(email, password);
-    await SecureStore.setItemAsync('authToken', token);
+    await setStorageItemAsync('authToken', token);
     setUser(user);
   }
 
   async function signOut() {
-    await SecureStore.deleteItemAsync('authToken');
+    await deleteStorageItemAsync('authToken');
     setUser(null);
   }
 
