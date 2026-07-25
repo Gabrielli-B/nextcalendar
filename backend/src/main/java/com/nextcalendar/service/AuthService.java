@@ -17,13 +17,16 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final EmailService emailService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtService jwtService) {
+                       JwtService jwtService,
+                       EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.emailService = emailService;
     }
 
     // ─── Login ────────────────────────────────────────────────────────────────
@@ -62,9 +65,12 @@ public class AuthService {
         user.setName(dto.name());
         user.setEmail(dto.email());
         user.setPasswordHash(passwordEncoder.encode(dto.password()));
+        user.setRole(dto.role());
         user.setActive(true);
 
         UserEntity saved = userRepository.save(user);
+        
+        emailService.sendConfirmationEmail(saved.getEmail(), saved.getName());
 
         String token = jwtService.generateToken(saved.getId(), saved.getEmail());
 

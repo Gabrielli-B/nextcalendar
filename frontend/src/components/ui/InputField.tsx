@@ -31,6 +31,7 @@ interface InputFieldProps {
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   style?: ViewStyle;
   editable?: boolean;
+  error?: string;
 }
 
 export function InputField({
@@ -44,6 +45,7 @@ export function InputField({
   autoCapitalize = 'none',
   style,
   editable = true,
+  error,
 }: InputFieldProps) {
   const { fontRegular, fontSemiBold } = useAppFonts();
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -51,7 +53,7 @@ export function InputField({
   return (
     <View style={[styles.group, style]}>
       <Text style={[styles.label, { fontFamily: fontSemiBold }]}>{label}</Text>
-      <View style={styles.wrapper}>
+      <View style={[styles.wrapper, error ? { borderColor: Colors.error } : null]}>
         <TextInput
           style={[styles.input, { fontFamily: fontRegular, flex: 1 }]}
           value={value}
@@ -73,6 +75,7 @@ export function InputField({
           </TouchableOpacity>
         )}
       </View>
+      {error ? <Text style={[styles.errorText, { fontFamily: fontRegular }]}>{error}</Text> : null}
     </View>
   );
 }
@@ -105,5 +108,11 @@ const styles = StyleSheet.create({
     lineHeight: 25.6,
     letterSpacing: -0.32,
     padding: 0,
+  },
+  errorText: {
+    color: Colors.error,
+    fontSize: 13,
+    marginTop: 2,
+    marginLeft: 4,
   },
 });

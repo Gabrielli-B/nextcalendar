@@ -12,7 +12,7 @@ import { register as registerService } from '@/services/authServices';
 import { RegisterSchema } from '@/schemas/authSchemas';
 import { formatPhone } from '@/utils/formatters';
 
-export default function RegisterScreen() {
+export default function RegisterEmpresaScreen() {
   const { fontRegular, fontSemiBold } = useAppFonts();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function RegisterScreen() {
     
     try {
       setIsSubmitting(true);
-      await registerService(name, email, password, 'CUSTOMER');
+      await registerService(name, email, password, 'MANAGER');
       router.replace('/login');
     } catch (err: any) {
       setGlobalError(err?.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
@@ -67,8 +67,8 @@ export default function RegisterScreen() {
         />
 
         <View style={styles.header}>
-          <Text style={[styles.title, { fontFamily: fontSemiBold }]}>Criar Nova Conta</Text>
-          <Text style={[styles.subtitle, { fontFamily: fontRegular }]}>Preencha seus dados para se cadastrar</Text>
+          <Text style={[styles.title, { fontFamily: fontSemiBold }]}>Cadastrar Empresa</Text>
+          <Text style={[styles.subtitle, { fontFamily: fontRegular }]}>Crie uma conta para gerenciar sua barbearia</Text>
         </View>
 
         <View style={styles.form}>

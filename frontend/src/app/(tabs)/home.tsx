@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
-import { BellIcon, LocationPinIcon } from '@/components/icons';
+import { BellIcon, LocationPinIcon, LogOutIcon } from '@/components/icons';
 import { BarberCard, Barber } from '@/components/ui/BarberCard';
 import { CategoryPill } from '@/components/ui/CategoryPill';
 import { SearchBar } from '@/components/ui/SearchBar';
@@ -48,7 +48,7 @@ export default function HomeScreen() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [remindersOn, setRemindersOn] = useState(true);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <ScrollView
@@ -61,13 +61,18 @@ export default function HomeScreen() {
         <View style={styles.headerLeft}>
           <View style={styles.locationRow}>
             <LocationPinIcon size={14} />
-            <Text style={[styles.locationText, { fontFamily: fontRegular }]}>São Leopoldo - RS</Text>
+            <Text style={[styles.locationText, { fontFamily: fontRegular }]}>Localização</Text>
           </View>
           <Text style={[styles.greeting, { fontFamily: fontSemiBold }]}>Bom dia, {user?.name?.split(' ')[0] || 'Visitante'} 👋</Text>
         </View>
-        <TouchableOpacity style={styles.bellButton}>
-          <BellIcon size={22} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <TouchableOpacity style={styles.bellButton}>
+            <BellIcon size={22} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.bellButton} onPress={signOut}>
+            <Text style={{ fontSize: 12, color: Colors.gold, fontWeight: 'bold' }}>Sair</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Search */}

@@ -29,6 +29,10 @@ public class UserEntity {
     @Column(nullable = false)
     private String passwordHash;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role;
+
     @Column(nullable = false)
     private Boolean active = true;
 

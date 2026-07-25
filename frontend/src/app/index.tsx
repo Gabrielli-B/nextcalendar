@@ -27,7 +27,7 @@ export default function GetStartedScreen() {
         </View>
 
         <View style={styles.buttons}>
-          <Button label="Empresa" onPress={() => router.push('/login')} />
+          <Button label="Empresa" onPress={() => router.push('/register-empresa')} />
           <Button label="Cliente" onPress={() => router.push('/login')} />
         </View>
       </View>

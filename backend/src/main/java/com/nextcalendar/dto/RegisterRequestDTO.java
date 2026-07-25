@@ -2,7 +2,9 @@ package com.nextcalendar.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import com.nextcalendar.entity.UserRole;
 
 public record RegisterRequestDTO(
         @NotBlank(message = "Nome é obrigatório")
@@ -14,5 +16,8 @@ public record RegisterRequestDTO(
 
         @NotBlank(message = "Senha é obrigatória")
         @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
-        String password
+        String password,
+
+        @NotNull(message = "O tipo de usuário é obrigatório")
+        UserRole role
 ) {}
