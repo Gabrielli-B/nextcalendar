@@ -26,3 +26,12 @@ export async function register(name: string, email: string, password: string, ro
   const { data } = await api.post<LoginResponse>('/auth/register', { name, email, password, role });
   return data;
 }
+
+/**
+ * POST /api/v1/auth/register (Gerente)
+ * Cadastra um novo gerente e já salva os dados da empresa.
+ */
+export async function registerEmpresa(payload: Record<string, any>): Promise<LoginResponse> {
+  const { data } = await api.post<LoginResponse>('/auth/register', payload);
+  return data;
+}

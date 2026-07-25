@@ -11,7 +11,7 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments.length === 0 || segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'register-empresa';
+    const inAuthGroup = !segments[0] || segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'register-empresa';
     
     if (!user && !inAuthGroup) {
       // Não está logado e tentou acessar área restrita

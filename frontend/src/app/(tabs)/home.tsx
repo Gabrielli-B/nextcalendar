@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import { useAuth } from '@/context/AuthContext';
 import { BellIcon, LocationPinIcon, LogOutIcon } from '@/components/icons';
 import { BarberCard, Barber } from '@/components/ui/BarberCard';
@@ -45,6 +46,35 @@ export default function HomeScreen() {
   const { fontRegular, fontSemiBold, fontBold } = useAppFonts();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [locationName, setLocationName] = useState('Buscando...');
+  
+  useEffect(() => {
+    (async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setLocationName('Localização negada');
+          return;
+        }
+
+        let location = await Location.getCurrentPositionAsync({});
+        const geocode = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        });
+        
+        if (geocode && geocode.length > 0) {
+          const place = geocode[0];
+          setLocationName(`${place.city || place.subregion} - ${place.region}`);
+        } else {
+          setLocationName('Localização desconhecida');
+        }
+      } catch (error) {
+        setLocationName('Erro de localização');
+      }
+    })();
+  }, []);
+
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [remindersOn, setRemindersOn] = useState(true);
@@ -61,7 +91,7 @@ export default function HomeScreen() {
         <View style={styles.headerLeft}>
           <View style={styles.locationRow}>
             <LocationPinIcon size={14} />
-            <Text style={[styles.locationText, { fontFamily: fontRegular }]}>Localização</Text>
+            <Text style={[styles.locationText, { fontFamily: fontRegular }]}>{locationName}</Text>
           </View>
           <Text style={[styles.greeting, { fontFamily: fontSemiBold }]}>Bom dia, {user?.name?.split(' ')[0] || 'Visitante'} 👋</Text>
         </View>

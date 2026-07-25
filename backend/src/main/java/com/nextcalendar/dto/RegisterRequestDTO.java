@@ -19,5 +19,17 @@ public record RegisterRequestDTO(
         String password,
 
         @NotNull(message = "O tipo de usuário é obrigatório")
-        UserRole role
+        UserRole role,
+
+        // Campos opcionais para criação de Empresa
+        String cnpj,
+        String phone,
+        String whatsapp,
+        String cep,
+        String street,
+        String number,
+        String complement,
+        String city,
+        String neighborhood,
+        String state
 ) {}
