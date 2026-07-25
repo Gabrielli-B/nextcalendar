@@ -22,20 +22,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getStorageItemAsync('authToken').then((token) => {
-      // TODO: se tiver token salvo, validar com o back e restaurar o usuário
+    async function loadStorageData() {
+      const token = await getStorageItemAsync('authToken');
+      const userStr = await getStorageItemAsync('authUser');
+      
+      if (token && userStr) {
+        setUser(JSON.parse(userStr));
+      }
       setIsLoading(false);
-    });
+    }
+    loadStorageData();
   }, []);
 
   async function signIn(email: string, password: string) {
     const { token, user } = await loginService(email, password);
     await setStorageItemAsync('authToken', token);
+    await setStorageItemAsync('authUser', JSON.stringify(user));
     setUser(user);
   }
 
   async function signOut() {
     await deleteStorageItemAsync('authToken');
+    await deleteStorageItemAsync('authUser');
     setUser(null);
   }
 

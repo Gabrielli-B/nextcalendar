@@ -48,6 +48,7 @@ export default function HomeScreen() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [remindersOn, setRemindersOn] = useState(true);
+  const { user } = useAuth();
 
   return (
     <ScrollView
