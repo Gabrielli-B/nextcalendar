@@ -1,7 +1,7 @@
 package com.nextcalendar.mapper;
 
-import com.nextcalendar.dto.ClientCreateDTO;
-import com.nextcalendar.dto.ClientUpdateDTO;
+import com.nextcalendar.dto.client.ClientCreateDTO;
+import com.nextcalendar.dto.client.ClientUpdateDTO;
 import com.nextcalendar.entity.ClientEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

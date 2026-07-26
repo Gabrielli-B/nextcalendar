@@ -1,4 +1,4 @@
-package com.nextcalendar.dto;
+package com.nextcalendar.dto.client;
 
 import com.nextcalendar.entity.ClientEntity;
 import java.time.LocalDate;
