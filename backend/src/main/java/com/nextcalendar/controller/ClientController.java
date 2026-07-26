@@ -1,6 +1,6 @@
 package com.nextcalendar.controller;
 
-import com.nextcalendar.dto.*;
+import com.nextcalendar.dto.client.*;
 import com.nextcalendar.service.ClientService;
 import jakarta.validation.Valid;
 
