@@ -1,6 +1,6 @@
 package com.nextcalendar.service;
 
-import com.nextcalendar.dto.*;
+import com.nextcalendar.dto.client.*;
 import com.nextcalendar.entity.ClientEntity;
 import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.mapper.ClientMapper;
