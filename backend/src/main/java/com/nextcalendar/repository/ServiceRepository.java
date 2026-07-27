@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface ServiceRepository extends JpaRepository<ServiceEntity, UUID> {
     Page<ServiceEntity> findByEstablishmentAndActiveTrue(EstablishmentEntity establishment, Pageable pageable);
 
-    Page<ServiceEntity> findByEstablishmentAndNameContainingIgnoreCaseActiveTrue(
+    Page<ServiceEntity> findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(
             EstablishmentEntity establishment,
             String name,
             Pageable pageable
