@@ -60,7 +60,7 @@ public class ClientService {
         return new ClientDetailsResponseDTO(client);
     }
 
-    //depois criar um dto mais simples apenas para a listagem dos clientes quando o profissional pesquisar
+
     public Page<ClientMinResponseDTO> findClientsByName(String name, Pageable pageable){
        return clientRepository.findByNameContainingIgnoreCaseAndActiveTrue(name,pageable)
                 .map(ClientMinResponseDTO::new);

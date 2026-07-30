@@ -18,7 +18,11 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, UUID> {
             Pageable pageable
     );
 
+    Optional<ServiceEntity> findByIdAndEstablishmentAndActiveTrue(UUID id, EstablishmentEntity establishment);
+
     Optional<ServiceEntity> findByIdAndActiveTrue(UUID id);
+
+
 
     boolean existsByNameAndEstablishment(String name, EstablishmentEntity establishment);
 
