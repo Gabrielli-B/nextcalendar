@@ -1,4 +1,4 @@
-// src/services/authService.ts
+import api from './api';
 
 type LoginResponse = {
   token: string;
@@ -9,22 +9,29 @@ type LoginResponse = {
   };
 };
 
-// 🔧 MOCK TEMPORÁRIO — trocar pela chamada real quando o back estiver pronto
+/**
+ * POST /api/v1/auth/login
+ * Autentica o usuário e retorna o JWT + dados do usuário.
+ */
 export async function login(email: string, password: string): Promise<LoginResponse> {
-  // simula o delay de uma requisição de rede
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  const { data } = await api.post<LoginResponse>('/auth/login', { email, password });
+  return data;
+}
 
-  // simula erro de credenciais inválidas pra você testar esse caminho também
-  if (password !== '123456') {
-    throw { message: 'Email ou senha inválidos' };
-  }
+/**
+ * POST /api/v1/auth/register
+ * Cadastra um novo usuário e retorna o JWT + dados do usuário.
+ */
+export async function register(name: string, email: string, password: string, role: string): Promise<LoginResponse> {
+  const { data } = await api.post<LoginResponse>('/auth/register', { name, email, password, role });
+  return data;
+}
 
-  return {
-    token: 'mock-jwt-token-fake',
-    user: {
-      id: 'mock-uuid-123',
-      name: 'Pedro Teste',
-      email,
-    },
-  };
+/**
+ * POST /api/v1/auth/register (Gerente)
+ * Cadastra um novo gerente e já salva os dados da empresa.
+ */
+export async function registerEmpresa(payload: Record<string, any>): Promise<LoginResponse> {
+  const { data } = await api.post<LoginResponse>('/auth/register', payload);
+  return data;
 }

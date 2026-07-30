@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { getStorageItemAsync, setStorageItemAsync, deleteStorageItemAsync } from '../utils/storage';
 import { login as loginService } from '../services/authServices';
 
 type User = {
@@ -21,21 +21,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  //useEffect(() => {
-    //SecureStore.getItemAsync('authToken').then((token) => {
-      // TODO: se tiver token salvo, validar com o back e restaurar o usuário
-      //setIsLoading(false);
-    //});
-  //}, []);
+  useEffect(() => {
+    async function loadStorageData() {
+      const token = await getStorageItemAsync('authToken');
+      const userStr = await getStorageItemAsync('authUser');
+      
+      if (token && userStr) {
+        setUser(JSON.parse(userStr));
+      }
+      setIsLoading(false);
+    }
+    loadStorageData();
+  }, []);
 
   async function signIn(email: string, password: string) {
     const { token, user } = await loginService(email, password);
-    await SecureStore.setItemAsync('authToken', token);
+    await setStorageItemAsync('authToken', token);
+    await setStorageItemAsync('authUser', JSON.stringify(user));
     setUser(user);
   }
 
   async function signOut() {
-    await SecureStore.deleteItemAsync('authToken');
+    await deleteStorageItemAsync('authToken');
+    await deleteStorageItemAsync('authUser');
     setUser(null);
   }
 

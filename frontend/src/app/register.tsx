@@ -2,12 +2,15 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
 import { InputField } from '@/components/ui/InputField';
 import { Colors } from '@/constants/colors';
 import { useAppFonts } from '@/hooks/use-fonts';
+import { register as registerService } from '@/services/authServices';
+import { RegisterSchema } from '@/schemas/authSchemas';
+import { formatPhone } from '@/utils/formatters';
 
 export default function RegisterScreen() {
   const { fontRegular, fontSemiBold } = useAppFonts();
@@ -18,6 +21,36 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [globalError, setGlobalError] = useState('');
+
+  async function handleRegister() {
+    setGlobalError('');
+    setErrors({});
+
+    const parseResult = RegisterSchema.safeParse({ name, email, phone, password });
+    if (!parseResult.success) {
+      const fieldErrors: Record<string, string> = {};
+      parseResult.error.issues.forEach(issue => {
+        const field = issue.path[0] as string;
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      await registerService(name, email, password, 'CUSTOMER');
+      router.replace('/login');
+    } catch (err: any) {
+      setGlobalError(err?.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -39,17 +72,19 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.form}>
-          <InputField label="Nome completo" value={name} onChangeText={setName} placeholder="Seu nome completo" autoCapitalize="words" />
-          <InputField label="Email" value={email} onChangeText={setEmail} placeholder="seu@email.com" keyboardType="email-address" />
-          <InputField label="Número de telefone" value={phone} onChangeText={setPhone} placeholder="(00) 00000-0000" keyboardType="phone-pad" />
-          <InputField label="Senha" value={password} onChangeText={setPassword} placeholder="••••••••••••" secureTextEntry />
+          <InputField label="Nome completo" value={name} onChangeText={setName} placeholder="Seu nome completo" autoCapitalize="words" error={errors.name} />
+          <InputField label="Email" value={email} onChangeText={setEmail} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" error={errors.email} />
+          <InputField label="Número de telefone" value={phone} onChangeText={(text) => setPhone(formatPhone(text))} placeholder="(00) 00000-0000" keyboardType="phone-pad" error={errors.phone} />
+          <InputField label="Senha" value={password} onChangeText={setPassword} placeholder="••••••••••••" secureTextEntry error={errors.password} />
         </View>
 
-        <Button label="Criar conta" onPress={() => router.push('/(tabs)/home' as any)} />
+        {globalError ? <Text style={styles.errorText}>{globalError}</Text> : null}
+
+        <Button label={isSubmitting ? "Criando..." : "Criar conta"} onPress={handleRegister} disabled={isSubmitting} />
 
         <View style={styles.loginRow}>
           <Text style={[styles.loginText, { fontFamily: fontRegular }]}>Já tem uma conta? </Text>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.push('/login')}>
             <Text style={[styles.loginLink, { fontFamily: fontSemiBold }]}>Entrar</Text>
           </TouchableOpacity>
         </View>
@@ -70,4 +105,5 @@ const styles = StyleSheet.create({
   loginRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   loginText: { color: Colors.grey400, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28 },
   loginLink: { color: Colors.gold, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28, fontWeight: '600' },
+  errorText: { color: Colors.error, fontSize: 14, textAlign: 'center', marginTop: 8 },
 });

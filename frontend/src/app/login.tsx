@@ -77,7 +77,7 @@ export default function LoginScreen() {
         </View>
 
         <Button label={isSubmitting ? 'Entrando...' : 'Entrar'} onPress={handleLogin} disabled={isSubmitting}/>
-        {error ? <Text style={styles.errorText}></Text>:null}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
         <Divider />
 
