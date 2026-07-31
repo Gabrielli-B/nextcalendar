@@ -35,4 +35,11 @@ public class ServiceMapper {
         Optional.ofNullable(dto.duration())
                 .ifPresent(service::setDuration);
     }
+
+    public void updateEntity(ServiceEntity service, ServiceCreateDTO dto) {
+        service.setName(dto.name());
+        service.setPrice(dto.price());
+        service.setDuration(dto.duration());
+        service.setCategory(dto.category());
+    }
 }

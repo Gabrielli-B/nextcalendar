@@ -22,13 +22,13 @@ public interface ServiceRepository extends JpaRepository<ServiceEntity, UUID> {
 
     Optional<ServiceEntity> findByIdAndActiveTrue(UUID id);
 
-
-
-    boolean existsByNameAndEstablishment(String name, EstablishmentEntity establishment);
-
-    boolean existsByNameAndEstablishmentAndIdNot(
+    Optional<ServiceEntity> findByNameAndEstablishmentAndActiveFalse(
             String name,
-            EstablishmentEntity establishment,
-            UUID id
+            EstablishmentEntity establishment
     );
+
+    boolean existsByNameAndEstablishmentAndActiveTrue(String name, EstablishmentEntity establishment);
+
+    boolean existsByNameAndEstablishmentAndActiveTrueAndIdNot(String name,EstablishmentEntity establishment,UUID idService);
+
 }
