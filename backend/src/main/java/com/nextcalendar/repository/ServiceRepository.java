@@ -12,19 +12,23 @@ import java.util.UUID;
 public interface ServiceRepository extends JpaRepository<ServiceEntity, UUID> {
     Page<ServiceEntity> findByEstablishmentAndActiveTrue(EstablishmentEntity establishment, Pageable pageable);
 
-    Page<ServiceEntity> findByEstablishmentAndNameContainingIgnoreCaseActiveTrue(
+    Page<ServiceEntity> findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(
             EstablishmentEntity establishment,
             String name,
             Pageable pageable
     );
 
+    Optional<ServiceEntity> findByIdAndEstablishmentAndActiveTrue(UUID id, EstablishmentEntity establishment);
+
     Optional<ServiceEntity> findByIdAndActiveTrue(UUID id);
 
-    boolean existsByNameAndEstablishment(String name, EstablishmentEntity establishment);
-
-    boolean existsByNameAndEstablishmentAndIdNot(
+    Optional<ServiceEntity> findByNameAndEstablishmentAndActiveFalse(
             String name,
-            EstablishmentEntity establishment,
-            UUID id
+            EstablishmentEntity establishment
     );
+
+    boolean existsByNameAndEstablishmentAndActiveTrue(String name, EstablishmentEntity establishment);
+
+    boolean existsByNameAndEstablishmentAndActiveTrueAndIdNot(String name,EstablishmentEntity establishment,UUID idService);
+
 }

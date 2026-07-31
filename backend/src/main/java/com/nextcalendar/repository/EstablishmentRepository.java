@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+
 import java.util.UUID;
 
 public interface EstablishmentRepository extends JpaRepository<EstablishmentEntity, UUID> {
@@ -24,4 +25,5 @@ public interface EstablishmentRepository extends JpaRepository<EstablishmentEnti
 
     // UC05 — scheduler: trial já expirado
     List<EstablishmentEntity> findByTrialEndDateBeforeAndActiveTrue(LocalDateTime threshold);
+
 }
