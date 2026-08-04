@@ -5,6 +5,7 @@ import com.nextcalendar.dto.services.ServiceMinResponseDTO;
 import com.nextcalendar.dto.services.ServiceUpdateDTO;
 import com.nextcalendar.service.ServiceService;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -36,12 +37,12 @@ public class ServiceController {
     }
 
     @GetMapping("/search")
-    public Page<ServiceMinResponseDTO> findServicesByName(@RequestParam (defaultValue = "") String name, @PathVariable UUID establishmentId, Pageable pageable){
+    public Page<ServiceMinResponseDTO> findServicesByName(@RequestParam (defaultValue = "") String name, @PathVariable UUID establishmentId, @ParameterObject Pageable pageable){
         return serviceService.findServicesByName(name,establishmentId,pageable);
     }
 
     @GetMapping
-    public Page<ServiceMinResponseDTO> findAllServices(@PathVariable UUID establishmentId, Pageable pageable) {
+    public Page<ServiceMinResponseDTO> findAllServices(@PathVariable UUID establishmentId, @ParameterObject Pageable pageable) {
         return serviceService.findAllServices(establishmentId, pageable);
     }
 
