@@ -1,11 +1,7 @@
 package com.nextcalendar.dto.professional;
 
 import com.nextcalendar.entity.ProfessionalEntity;
-import jakarta.persistence.Column;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
