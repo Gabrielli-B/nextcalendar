@@ -1,4 +1,4 @@
-package com.nextcalendar.dto;
+package com.nextcalendar.dto.login_register;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

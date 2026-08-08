@@ -1,4 +1,4 @@
-package com.nextcalendar.dto;
+package com.nextcalendar.dto.address;
 
 /**
  * Sub-DTO de endereço para atualização parcial.

@@ -1,5 +1,6 @@
-package com.nextcalendar.dto;
+package com.nextcalendar.dto.establishment;
 
+import com.nextcalendar.dto.address.AddressUpdateDTO;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 

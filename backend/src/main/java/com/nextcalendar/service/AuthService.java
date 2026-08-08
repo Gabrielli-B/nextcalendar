@@ -1,8 +1,8 @@
 package com.nextcalendar.service;
 
-import com.nextcalendar.dto.LoginRequestDTO;
-import com.nextcalendar.dto.LoginResponseDTO;
-import com.nextcalendar.dto.RegisterRequestDTO;
+import com.nextcalendar.dto.login_register.LoginRequestDTO;
+import com.nextcalendar.dto.login_register.LoginResponseDTO;
+import com.nextcalendar.dto.login_register.RegisterRequestDTO;
 import com.nextcalendar.entity.UserEntity;
 import com.nextcalendar.entity.EstablishmentEntity;
 import com.nextcalendar.entity.AddressEmbeddable;

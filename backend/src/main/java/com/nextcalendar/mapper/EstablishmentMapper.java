@@ -1,11 +1,9 @@
 package com.nextcalendar.mapper;
 
-import com.nextcalendar.dto.EstablishmentCreateDTO;
-import com.nextcalendar.dto.EstablishmentUpdateDTO;
+import com.nextcalendar.dto.establishment.EstablishmentCreateDTO;
+import com.nextcalendar.dto.establishment.EstablishmentUpdateDTO;
 import com.nextcalendar.entity.AddressEmbeddable;
 import com.nextcalendar.entity.EstablishmentEntity;
-
-import java.time.LocalDateTime;
 
 public class EstablishmentMapper {
 
