@@ -1,5 +1,6 @@
-package com.nextcalendar.dto;
+package com.nextcalendar.dto.establishment;
 
+import com.nextcalendar.dto.address.AddressResponseDTO;
 import com.nextcalendar.entity.EstablishmentEntity;
 
 import java.time.LocalDateTime;

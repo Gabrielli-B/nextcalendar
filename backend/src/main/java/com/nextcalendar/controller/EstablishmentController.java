@@ -1,6 +1,9 @@
 package com.nextcalendar.controller;
 
 import com.nextcalendar.dto.*;
+import com.nextcalendar.dto.establishment.EstablishmentCreateDTO;
+import com.nextcalendar.dto.establishment.EstablishmentResponseDTO;
+import com.nextcalendar.dto.establishment.EstablishmentUpdateDTO;
 import com.nextcalendar.service.EstablishmentService;
 import com.nextcalendar.service.ViaCepService;
 import jakarta.validation.Valid;

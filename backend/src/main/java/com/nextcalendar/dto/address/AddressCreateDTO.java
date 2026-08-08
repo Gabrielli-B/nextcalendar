@@ -1,4 +1,4 @@
-package com.nextcalendar.dto;
+package com.nextcalendar.dto.address;
 
 import jakarta.validation.constraints.NotBlank;
 

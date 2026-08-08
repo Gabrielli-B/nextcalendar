@@ -1,6 +1,11 @@
 package com.nextcalendar.service;
 
 import com.nextcalendar.dto.*;
+import com.nextcalendar.dto.address.AddressCreateDTO;
+import com.nextcalendar.dto.address.AddressUpdateDTO;
+import com.nextcalendar.dto.establishment.EstablishmentCreateDTO;
+import com.nextcalendar.dto.establishment.EstablishmentResponseDTO;
+import com.nextcalendar.dto.establishment.EstablishmentUpdateDTO;
 import com.nextcalendar.entity.AddressEmbeddable;
 import com.nextcalendar.entity.EstablishmentEntity;
 import com.nextcalendar.entity.ProfileEntity;

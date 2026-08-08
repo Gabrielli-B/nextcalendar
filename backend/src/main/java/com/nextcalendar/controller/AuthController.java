@@ -1,8 +1,8 @@
 package com.nextcalendar.controller;
 
-import com.nextcalendar.dto.LoginRequestDTO;
-import com.nextcalendar.dto.LoginResponseDTO;
-import com.nextcalendar.dto.RegisterRequestDTO;
+import com.nextcalendar.dto.login_register.LoginRequestDTO;
+import com.nextcalendar.dto.login_register.LoginResponseDTO;
+import com.nextcalendar.dto.login_register.RegisterRequestDTO;
 import com.nextcalendar.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
