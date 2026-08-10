@@ -1,5 +1,6 @@
 package com.nextcalendar.controller;
 
+import com.nextcalendar.controller.openapi.EstablishmentApi;
 import com.nextcalendar.dto.*;
 import com.nextcalendar.dto.establishment.EstablishmentCreateDTO;
 import com.nextcalendar.dto.establishment.EstablishmentResponseDTO;
@@ -14,7 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1")
-public class EstablishmentController {
+public class EstablishmentController implements EstablishmentApi {
 
     private final EstablishmentService establishmentService;
     private final ViaCepService viaCepService;
@@ -30,6 +31,7 @@ public class EstablishmentController {
      * UC01 — POST /api/v1/establishments
      * Cria o estabelecimento com trial (30 dias) + Profile GESTOR automaticamente.
      */
+    @Override
     @PostMapping("/establishments")
     @ResponseStatus(HttpStatus.CREATED)
     public EstablishmentResponseDTO create(@Valid @RequestBody EstablishmentCreateDTO dto) {
@@ -40,6 +42,7 @@ public class EstablishmentController {
      * GET /api/v1/establishments/{id}
      * Retorna os dados do estabelecimento — usado ao abrir a tela Empresa.
      */
+    @Override
     @GetMapping("/establishments/{id}")
     public EstablishmentResponseDTO findById(@PathVariable UUID id) {
         return establishmentService.findById(id);
@@ -50,6 +53,7 @@ public class EstablishmentController {
      * Atualização parcial — botão "Salvar" da tela Empresa.
      * UC06: dados inválidos retornam 422.
      */
+    @Override
     @PutMapping("/establishments/{id}")
     public EstablishmentResponseDTO update(
             @PathVariable UUID id,
@@ -62,6 +66,7 @@ public class EstablishmentController {
      * DELETE /api/v1/establishments/{id}
      * Soft delete — desativa o estabelecimento (não remove do banco).
      */
+    @Override
     @DeleteMapping("/establishments/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
@@ -75,6 +80,7 @@ public class EstablishmentController {
      * Busca o establishment vinculado ao usuário autenticado.
      * Fluxo alternativo 1a: 404 se não encontrado.
      */
+    @Override
     @GetMapping("/establishments/owner/{ownerId}")
     public EstablishmentResponseDTO findByOwner(@PathVariable UUID ownerId) {
         return establishmentService.findByOwnerId(ownerId);
@@ -87,6 +93,7 @@ public class EstablishmentController {
      * Registra aceite dos termos de uso e retorna dados atualizados.
      * Fluxo alternativo 2a: não chamar este endpoint = termsAccepted permanece false.
      */
+    @Override
     @PatchMapping("/establishments/{id}/terms")
     public EstablishmentResponseDTO acceptTerms(@PathVariable UUID id) {
         return establishmentService.acceptTerms(id);
@@ -98,6 +105,7 @@ public class EstablishmentController {
      * UC05 — GET /api/v1/establishments/{id}/trial
      * Retorna status do trial: dias restantes, aviso (<= 7 dias) e se está expirado.
      */
+    @Override
     @GetMapping("/establishments/{id}/trial")
     public TrialStatusDTO getTrialStatus(@PathVariable UUID id) {
         return establishmentService.getTrialStatus(id);
@@ -111,6 +119,7 @@ public class EstablishmentController {
      * UC01 6a: retorna 422 se CEP inválido.
      * UC01 6b: retorna 503 se API indisponível (o frontend trata e exibe campos manuais).
      */
+    @Override
     @GetMapping("/cep/{cep}")
     public ViaCepResponseDTO consultarCep(@PathVariable String cep) {
         return viaCepService.consultar(cep);
