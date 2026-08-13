@@ -1,7 +1,9 @@
 package com.nextcalendar.service;
 
 import com.nextcalendar.dto.client.*;
+import com.nextcalendar.dto.login_register.RegisterRequestDTO;
 import com.nextcalendar.entity.ClientEntity;
+import com.nextcalendar.entity.UserEntity;
 import com.nextcalendar.exception.BusinessException;
 import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.mapper.ClientMapper;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -23,6 +26,33 @@ public class ClientService {
     public ClientService(ClientRepository clientRepository, ClientMapper clientMapper) {
         this.clientRepository=clientRepository;
         this.clientMapper=clientMapper;
+    }
+
+    @Transactional
+    public ClientEntity createClientFromRegistration(
+            UserEntity user,
+            RegisterRequestDTO dto
+    ) {
+
+        if (clientRepository.existsByEmail(user.getEmail())) {
+            throw new BusinessException(
+                    "O e-mail " + user.getEmail()
+                            + " já está cadastrado como cliente."
+            );
+        }
+
+        ClientEntity client = new ClientEntity();
+
+        client.setUserId(user.getId());
+        client.setName(user.getName());
+        client.setPhone(dto.phone());
+        client.setEmail(user.getEmail());
+        client.setDateOfBirth(dto.dateOfBirth());
+        client.setPhotoUrl(dto.photoUrl());
+        client.setNotes(dto.notes());
+        client.setActive(true);
+
+        return clientRepository.save(client);
     }
 
     public ClientProfileResponseDTO createClient(ClientCreateDTO clientDto){

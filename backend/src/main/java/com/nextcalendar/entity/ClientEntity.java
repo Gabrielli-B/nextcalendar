@@ -25,6 +25,8 @@ public class ClientEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(nullable = false)
+    private UUID userId;
 
     @OneToOne(mappedBy = "client")
     private TechnicalSheetEntity technicalSheet;
@@ -37,9 +39,6 @@ public class ClientEntity {
 
     @Column(nullable = false)
     private String email;
-
-    @Column(nullable = false)
-    private String password;
 
     private LocalDate dateOfBirth;
     private String photoUrl;
