@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
                 ))
                 .toList();
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .status(HttpStatus.valueOf(422))
                 .body(errors);
     }
 
@@ -55,7 +55,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CepInvalidException.class)
     public ResponseEntity<String> handleCepInvalid(CepInvalidException ex) {
         return ResponseEntity
-                .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .status(HttpStatus.valueOf(422))
                 .body(ex.getMessage());
     }
 
