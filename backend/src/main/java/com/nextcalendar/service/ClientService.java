@@ -29,21 +29,16 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientEntity createClientFromRegistration(
-            UserEntity user,
-            RegisterRequestDTO dto
-    ) {
+    public ClientEntity createClientFromRegistration(UserEntity user, RegisterRequestDTO dto) {
 
         if (clientRepository.existsByEmail(user.getEmail())) {
-            throw new BusinessException(
-                    "O e-mail " + user.getEmail()
-                            + " já está cadastrado como cliente."
+            throw new BusinessException("O e-mail " + user.getEmail() + " já está cadastrado como cliente."
             );
         }
 
         ClientEntity client = new ClientEntity();
 
-        client.setUserId(user.getId());
+        client.setUser(user);
         client.setName(user.getName());
         client.setPhone(dto.phone());
         client.setEmail(user.getEmail());
@@ -55,6 +50,7 @@ public class ClientService {
         return clientRepository.save(client);
     }
 
+    @Transactional
     public ClientProfileResponseDTO createClient(ClientCreateDTO clientDto){
 
         if (clientRepository.existsByEmail(clientDto.email())){
@@ -67,36 +63,50 @@ public class ClientService {
         return new ClientProfileResponseDTO(savedClient);
     }
 
-
+    @Transactional
     public ClientProfileResponseDTO updateClient(UUID id, ClientUpdateDTO clientDto){
 
-        ClientEntity client = clientRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Cliente",id));
+        ClientEntity client = clientRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Cliente", id));
 
-        if(clientDto.email() != null && !clientDto.email().isBlank() && !clientDto.email().equals(client.getEmail())){
-            if (clientRepository.existsByEmailAndIdNot(clientDto.email(), id)) {
-                throw new BusinessException("O e-mail '" + clientDto.email() + "' já está sendo usado por outro cliente.");
+        String targetEmail = clientDto.email();
+
+        if (targetEmail != null && !targetEmail.isBlank() && !targetEmail.equals(client.getEmail())) {
+            if (clientRepository.existsByEmailAndIdNot(targetEmail, id)) {
+                throw new BusinessException("O e-mail '" + targetEmail + "' já está sendo usado.");
             }
         }
 
-        clientMapper.updateEntity(client,clientDto);
+        clientMapper.updateEntity(client, clientDto);
+
+        if (client.getUser() != null) {
+            if (clientDto.name() != null && !clientDto.name().isBlank()) {
+                client.getUser().setName(clientDto.name());
+            }
+            if (targetEmail != null && !targetEmail.isBlank()) {
+                client.getUser().setEmail(targetEmail);
+            }
+        }
 
         ClientEntity savedClient = clientRepository.save(client);
 
         return new ClientProfileResponseDTO(savedClient);
     }
 
+    @Transactional(readOnly = true)
     public ClientDetailsResponseDTO findClientById(UUID id){
         ClientEntity client = clientRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Cliente",id));
         return new ClientDetailsResponseDTO(client);
     }
 
 
+    @Transactional(readOnly = true)
     public Page<ClientMinResponseDTO> findClientsByName(String name, Pageable pageable){
        return clientRepository.findByNameContainingIgnoreCaseAndActiveTrue(name,pageable)
                 .map(ClientMinResponseDTO::new);
 
     }
 
+    @Transactional
     public void deleteClient(UUID id){
         ClientEntity client = clientRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Cliente",id));
         client.setActive(false);
