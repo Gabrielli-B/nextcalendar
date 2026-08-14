@@ -20,17 +20,40 @@ export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState('');
 
+
+  function handleDateChange(text: string) {
+    const cleaned = text.replace(/\D/g, '');
+    let formatted = cleaned;
+    if (cleaned.length > 2 && cleaned.length <= 4) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2)}`;
+    } else if (cleaned.length > 4) {
+      formatted = `${cleaned.slice(0, 2)}/${cleaned.slice(2, 4)}/${cleaned.slice(4, 8)}`;
+    }
+    setDateOfBirth(formatted);
+  }
+
+  function convertDateToISO(dateStr: string): string | undefined {
+    if (!dateStr || dateStr.length < 10) return undefined;
+    const [day, month, year] = dateStr.split('/');
+    return `${year}-${month}-${day}`;
+  }
+
+
   async function handleRegister() {
     setGlobalError('');
     setErrors({});
 
-    const parseResult = RegisterSchema.safeParse({ name, email, phone, password });
+
+    const formattedDate = convertDateToISO(dateOfBirth);
+
+    const parseResult = RegisterSchema.safeParse({ name, email, phone, password, dateOfBirth: formattedDate });
     if (!parseResult.success) {
       const fieldErrors: Record<string, string> = {};
       parseResult.error.issues.forEach(issue => {
@@ -43,8 +66,9 @@ export default function RegisterScreen() {
     
     try {
       setIsSubmitting(true);
-      await registerService(name, email, password, 'CUSTOMER');
-      router.replace('/home');
+      const formattedDate = convertDateToISO(dateOfBirth);
+      await registerService(name, email, password, 'CUSTOMER',phone,formattedDate);
+      router.replace('/login');
     } catch (err: any) {
       setGlobalError(err?.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
     } finally {
@@ -75,6 +99,7 @@ export default function RegisterScreen() {
           <InputField label="Nome completo" value={name} onChangeText={setName} placeholder="Seu nome completo" autoCapitalize="words" error={errors.name} />
           <InputField label="Email" value={email} onChangeText={setEmail} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" error={errors.email} />
           <InputField label="Número de telefone" value={phone} onChangeText={(text) => setPhone(formatPhone(text))} placeholder="(00) 00000-0000" keyboardType="phone-pad" error={errors.phone} />
+          <InputField label="Data de nascimento" value={dateOfBirth} onChangeText={handleDateChange} placeholder="DD/MM/AAAA" keyboardType="numeric"  maxLength={10}error={errors.dateOfBirth} />
           <InputField label="Senha" value={password} onChangeText={setPassword} placeholder="••••••••••••" secureTextEntry error={errors.password} />
         </View>
 
