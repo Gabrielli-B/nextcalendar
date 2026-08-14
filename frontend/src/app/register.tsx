@@ -44,7 +44,7 @@ export default function RegisterScreen() {
     try {
       setIsSubmitting(true);
       await registerService(name, email, password, 'CUSTOMER');
-      router.replace('/login');
+      router.replace('/home');
     } catch (err: any) {
       setGlobalError(err?.response?.data?.message || 'Erro ao criar conta. Tente novamente.');
     } finally {
@@ -105,5 +105,5 @@ const styles = StyleSheet.create({
   loginRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   loginText: { color: Colors.grey400, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28 },
   loginLink: { color: Colors.gold, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28, fontWeight: '600' },
-  errorText: { color: Colors.error, fontSize: 14, textAlign: 'center', marginTop: 8 },
+  errorText: { color: Colors.error, fontSize: 14, textAlign: 'center', marginTop: 8,fontWeight:'bold' },
 });
