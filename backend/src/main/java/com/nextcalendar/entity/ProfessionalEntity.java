@@ -25,6 +25,10 @@ public class ProfessionalEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
+
     @ManyToOne
     @JoinColumn(name = "establishment_id", nullable = false)
     private EstablishmentEntity establishment;
@@ -42,7 +46,6 @@ public class ProfessionalEntity {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
     private String password;
 
     private String phone;
