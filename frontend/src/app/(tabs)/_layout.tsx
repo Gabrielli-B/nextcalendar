@@ -39,7 +39,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="search"
-        options={{ tabBarIcon: ExploreIcon }}
+        options={{ href: null }}
       />
       {/* Central QR Button */}
       <Tabs.Screen

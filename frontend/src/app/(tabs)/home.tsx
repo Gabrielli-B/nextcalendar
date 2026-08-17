@@ -1,223 +1,220 @@
-import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
+/**
+ * Tela Home — Visão do cliente no modelo Single-Tenant.
+ *
+ * Dados carregados do backend:
+ *  1. Agendamentos do cliente → getMyBookings()  [bookingServices.ts]
+ *  2. Serviços do tenant      → getServices()    [serviceServices.ts]
+ *
+ * TODO: Quando o vínculo cliente↔tenant estiver definido,
+ *       substituir `currentTenantId = user?.id` pelo tenantId real
+ *       vindo do AuthContext ou de um contexto de tenant dedicado.
+ */
+
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Location from 'expo-location';
-import { useAuth } from '@/context/AuthContext';
-import { BellIcon, LocationPinIcon, LogOutIcon } from '@/components/icons';
-import { BarberCard, Barber } from '@/components/ui/BarberCard';
-import { CategoryPill } from '@/components/ui/CategoryPill';
-import { SearchBar } from '@/components/ui/SearchBar';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import { BellIcon, LocationPinIcon } from '@/components/icons';
+import { NextBookingCard } from '@/components/ui/NextBookingCard';
+import { LoyaltyCard } from '@/components/ui/LoyaltyCard';
+import { ServicesList } from '@/components/ui/ServicesList';
 import { Colors } from '@/constants/colors';
 import { useAppFonts } from '@/hooks/use-fonts';
+import { useAuth } from '@/context/AuthContext';
 
-const CATEGORIES = ['Todos', 'Corte', 'Coloração', 'Shampoo', 'Barbas'];
-
-const BARBERS: Barber[] = [
-  {
-    id: '1',
-    name: 'Studio Vision',
-    address: 'Av. Imperatriz Leopoldina, 22ª',
-    distance: '1.2 km',
-    rating: 4.8,
-    imageUri: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=300&q=80',
-  },
-  {
-    id: '2',
-    name: 'Barbearia Clássicos',
-    address: 'Rua das Flores, 100 - Centro',
-    distance: '2.3 km',
-    rating: 4.6,
-    imageUri: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=300&q=80',
-  },
-  {
-    id: '3',
-    name: 'Sharp Gents Barbershop',
-    address: 'Av. Brasil, 445 - Sala 12',
-    distance: '3.1 km',
-    rating: 4.9,
-    imageUri: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=300&q=80',
-  },
-];
+import { getMyBookings, type Booking } from '@/services/bookingServices';
+import { getServices, type ServiceResponse } from '@/services/serviceServices';
 
 export default function HomeScreen() {
-  const { fontRegular, fontSemiBold, fontBold } = useAppFonts();
+  const { fontSemiBold } = useAppFonts();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [locationName, setLocationName] = useState('Buscando...');
-  
+
+  const { user, token, signOut } = useAuth();
+
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // ── Estado: Agendamentos ─────────────────────────────────────────────────
+  const [nextBooking, setNextBooking] = useState<Booking | null>(null);
+  const [completedBookingsCount, setCompletedBookingsCount] = useState(0);
+
+  // ── Estado: Serviços do Tenant ───────────────────────────────────────────
+  const [services, setServices] = useState<ServiceResponse[]>([]);
+
+  // TODO: substituir pelo tenantId real quando o vínculo cliente↔tenant estiver definido
+  const currentTenantId = user?.id ?? '';
+  // TODO: buscar o nome real do estabelecimento via API (ex: getEstablishmentByOwner)
+  const tenantName = 'Estabelecimento';
+
+  // ── Carregamento de dados ────────────────────────────────────────────────
+  async function loadHomeData() {
+    // 1. Agendamentos do cliente
+    try {
+      const bookings = await getMyBookings(token);
+      setNextBooking(bookings.find((b) => b.status === 'upcoming') ?? null);
+      setCompletedBookingsCount(bookings.filter((b) => b.status === 'done').length);
+    } catch {
+      setNextBooking(null);
+      setCompletedBookingsCount(0);
+    }
+
+    // 2. Serviços cadastrados no estabelecimento
+    if (!currentTenantId) {
+      setServices([]);
+      return;
+    }
+
+    try {
+      const page = await getServices(currentTenantId);
+      setServices(page?.content ?? []);
+    } catch {
+      setServices([]);
+    }
+  }
+
   useEffect(() => {
-    (async () => {
-      try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          setLocationName('Localização negada');
-          return;
-        }
+    setInitialLoading(true);
+    loadHomeData().finally(() => setInitialLoading(false));
+  }, [token, currentTenantId]);
 
-        let location = await Location.getCurrentPositionAsync({});
-        const geocode = await Location.reverseGeocodeAsync({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude
-        });
-        
-        if (geocode && geocode.length > 0) {
-          const place = geocode[0];
-          setLocationName(`${place.city || place.subregion} - ${place.region}`);
-        } else {
-          setLocationName('Localização desconhecida');
-        }
-      } catch (error) {
-        setLocationName('Erro de localização');
-      }
-    })();
-  }, []);
+  async function handleRefresh() {
+    setRefreshing(true);
+    await loadHomeData();
+    setRefreshing(false);
+  }
 
-  const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const [remindersOn, setRemindersOn] = useState(true);
-  const { user, signOut } = useAuth();
+  function handleStartBooking() {
+    router.push('/scheduling/agenda-do-profissional' as any);
+  }
 
-  return (
-    <ScrollView
-      style={styles.root}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 80 }]}
-      showsVerticalScrollIndicator={false}>
-
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.locationRow}>
-            <LocationPinIcon size={14} />
-            <Text style={[styles.locationText, { fontFamily: fontRegular }]}>{locationName}</Text>
+  // ── Render: loading inicial ──────────────────────────────────────────────
+  if (initialLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <LinearGradient
+          colors={[Colors.gold, Colors.goldDark]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.headerContainer, { paddingTop: insets.top + 16 }]}>
+          <View style={styles.header}>
+            <Text style={[styles.greeting, { fontFamily: fontSemiBold }]}>
+              Olá, {user?.name?.split(' ')[0] || 'Cliente'} 👋
+            </Text>
           </View>
-          <Text style={[styles.greeting, { fontFamily: fontSemiBold }]}>Bom dia, {user?.name?.split(' ')[0] || 'Visitante'} 👋</Text>
-        </View>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <TouchableOpacity style={styles.bellButton}>
-            <BellIcon size={22} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.bellButton} onPress={signOut}>
-            <Text style={{ fontSize: 12, color: Colors.gold, fontWeight: 'bold' }}>Sair</Text>
-          </TouchableOpacity>
-        </View>
+        </LinearGradient>
+        <ActivityIndicator color={Colors.gold} size="large" style={{ marginTop: 60 }} />
       </View>
+    );
+  }
 
-      {/* Search */}
-      <SearchBar value={search} onChangeText={setSearch} onClear={() => setSearch('')} />
-
-      {/* Promo Banner */}
+  // ── Render: tela principal ───────────────────────────────────────────────
+  return (
+    <View style={styles.root}>
+      {/* Header dourado com degradê */}
       <LinearGradient
         colors={[Colors.gold, Colors.goldDark]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.promoBanner}>
-        <View style={styles.promoContent}>
-          <Text style={[styles.promoTag, { fontFamily: fontSemiBold }]}>50% OFF</Text>
-          <Text style={[styles.promoTitle, { fontFamily: fontBold }]}>Especial de hoje 30%</Text>
-          <Text style={[styles.promoSub, { fontFamily: fontRegular }]}>
-            Obtenha um desconto em todos os seus pedidos de serviço!
-          </Text>
-          <TouchableOpacity style={styles.promoButton}>
-            <Text style={[styles.promoButtonText, { fontFamily: fontSemiBold }]}>Válido somente hoje!</Text>
-          </TouchableOpacity>
+        style={[styles.headerContainer, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <View style={styles.tenantRow}>
+              <LocationPinIcon size={14} color={Colors.white} />
+              <Text style={[styles.tenantName, { fontFamily: fontSemiBold }]}>
+                {tenantName}
+              </Text>
+            </View>
+            <Text style={[styles.greeting, { fontFamily: fontSemiBold }]}>
+              Olá, {user?.name?.split(' ')[0] || 'Cliente'} 👋
+            </Text>
+          </View>
+
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.iconButton} accessibilityLabel="Notificações">
+              <BellIcon size={20} color={Colors.white} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={signOut}
+              accessibilityLabel="Sair da conta">
+              <Text style={[styles.logoutText, { fontFamily: fontSemiBold }]}>Sair</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
 
-      {/* Categories */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { fontFamily: fontSemiBold }]}>Categorias</Text>
-        <TouchableOpacity>
-          <Text style={[styles.seeAll, { fontFamily: fontRegular }]}>Ver tudo</Text>
-        </TouchableOpacity>
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesRow}>
-        {CATEGORIES.map(cat => (
-          <CategoryPill
-            key={cat}
-            label={cat}
-            selected={selectedCategory === cat}
-            onPress={() => setSelectedCategory(cat)}
-          />
-        ))}
+      {/* Conteúdo rolável */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 90 }]}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Colors.gold} />
+        }>
+
+        {/* 1. Próximo Agendamento (ou estado vazio) */}
+        <NextBookingCard booking={nextBooking} onNewBookingPress={handleStartBooking} />
+
+        {/* 2. Pontos de Fidelidade — calculados pelo total de atendimentos concluídos */}
+        {/* TODO: definir regra de pontuação e bonificação com o time de produto */}
+        <LoyaltyCard
+          currentPoints={completedBookingsCount}
+          targetPoints={10}
+          rewardDescription="1 Corte Grátis ou Tratos VIP"
+        />
+
+        {/* 3. Catálogo de Serviços do Estabelecimento */}
+        <ServicesList
+          services={services}
+          onSelectService={() => handleStartBooking()}
+        />
+
       </ScrollView>
-
-      {/* Upcoming appointments */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { fontFamily: fontSemiBold }]}>Consultas futuras</Text>
-        <View style={styles.reminderRow}>
-          <Text style={[styles.reminderLabel, { fontFamily: fontRegular }]}>Lembrete</Text>
-          <Switch
-            value={remindersOn}
-            onValueChange={setRemindersOn}
-            trackColor={{ false: Colors.grey100, true: Colors.gold }}
-            thumbColor={Colors.white}
-          />
-        </View>
-      </View>
-
-      {/* Upcoming card */}
-      <View style={styles.upcomingCard}>
-        <Text style={[styles.upcomingDate, { fontFamily: fontSemiBold }]}>Dez 22, 2026</Text>
-        <BarberCard barber={BARBERS[0]} />
-        <View style={styles.upcomingActions}>
-          <TouchableOpacity style={styles.cancelBtn}>
-            <Text style={[styles.cancelText, { fontFamily: fontSemiBold }]}>Cancelar Reserva</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.rescheduleBtn}>
-            <Text style={[styles.rescheduleText, { fontFamily: fontSemiBold }]}>S-Recibo</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Nearby */}
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { fontFamily: fontSemiBold }]}>Localização Próxima</Text>
-        <TouchableOpacity>
-          <Text style={[styles.seeAll, { fontFamily: fontRegular }]}>Ver tudo</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.barberList}>
-        {BARBERS.map(barber => (
-          <BarberCard key={barber.id} barber={barber} />
-        ))}
-      </View>
-
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Colors.white },
-  content: { paddingHorizontal: 20, gap: 20 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerLeft: { gap: 4 },
-  locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  locationText: { color: Colors.grey400, fontSize: 13 },
-  greeting: { color: Colors.dark, fontSize: 20, fontWeight: '600' },
-  bellButton: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: Colors.grey100, alignItems: 'center', justifyContent: 'center' },
-  promoBanner: { borderRadius: 16, padding: 20, overflow: 'hidden' },
-  promoContent: { gap: 6 },
-  promoTag: { color: Colors.white, fontSize: 12, opacity: 0.9 },
-  promoTitle: { color: Colors.white, fontSize: 22 },
-  promoSub: { color: Colors.white, fontSize: 13, opacity: 0.85, lineHeight: 20 },
-  promoButton: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 8, marginTop: 4 },
-  promoButtonText: { color: Colors.white, fontSize: 13 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { color: Colors.dark, fontSize: 16, fontWeight: '600' },
-  seeAll: { color: Colors.gold, fontSize: 13 },
-  categoriesRow: { gap: 8, paddingRight: 4 },
-  reminderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  reminderLabel: { color: Colors.grey400, fontSize: 13 },
-  upcomingCard: { backgroundColor: Colors.surface, borderRadius: 16, padding: 16, gap: 12 },
-  upcomingDate: { color: Colors.dark, fontSize: 14 },
-  upcomingActions: { flexDirection: 'row', gap: 10 },
-  cancelBtn: { flex: 1, height: 40, borderRadius: 10, borderWidth: 1, borderColor: Colors.grey200, alignItems: 'center', justifyContent: 'center' },
-  cancelText: { color: Colors.grey500, fontSize: 13 },
-  rescheduleBtn: { flex: 1, height: 40, borderRadius: 10, backgroundColor: Colors.gold, alignItems: 'center', justifyContent: 'center' },
-  rescheduleText: { color: Colors.white, fontSize: 13 },
-  barberList: { gap: 12 },
+  loadingContainer: { flex: 1, backgroundColor: Colors.white },
+  scroll: { flex: 1 },
+  content: { paddingHorizontal: 20, paddingTop: 20, gap: 20 },
+
+  // Header
+  headerContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 22,
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: { gap: 4, flex: 1 },
+  tenantRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  tenantName: { color: Colors.white, fontSize: 13, opacity: 0.85 },
+  greeting: { color: Colors.white, fontSize: 20 },
+  headerRight: { flexDirection: 'row', gap: 10, alignItems: 'center' },
+  iconButton: {
+    paddingHorizontal: 12,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoutText: { color: Colors.white, fontSize: 12 },
 });

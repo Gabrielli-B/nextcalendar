@@ -32,6 +32,7 @@ interface InputFieldProps {
   style?: ViewStyle;
   editable?: boolean;
   error?: string;
+  maxLength?: number;
 }
 
 export function InputField({
@@ -46,6 +47,7 @@ export function InputField({
   style,
   editable = true,
   error,
+  maxLength,
 }: InputFieldProps) {
   const { fontRegular, fontSemiBold } = useAppFonts();
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -60,6 +62,7 @@ export function InputField({
           onChangeText={onChangeText}
           onBlur={onBlur}
           placeholder={placeholder}
+          maxLength={maxLength}
           placeholderTextColor={Colors.grey400}
           secureTextEntry={secureTextEntry && !passwordVisible}
           keyboardType={keyboardType}

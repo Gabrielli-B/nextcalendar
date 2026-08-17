@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import com.nextcalendar.entity.UserRole;
 
+import java.time.LocalDate;
+
 public record RegisterRequestDTO(
         @NotBlank(message = "Nome é obrigatório")
         String name,
@@ -22,7 +24,9 @@ public record RegisterRequestDTO(
         UserRole role,
 
         // Campos opcionais para criação de Empresa
+        // Dados usados no cadastro de estabelecimento
         String cnpj,
+        @NotBlank(message = "Telefone é obrigatório")
         String phone,
         String whatsapp,
         String cep,
@@ -31,5 +35,10 @@ public record RegisterRequestDTO(
         String complement,
         String city,
         String neighborhood,
-        String state
+        String state,
+
+        // Dados específicos do cliente
+        LocalDate dateOfBirth,
+        String photoUrl,
+        String notes
 ) {}

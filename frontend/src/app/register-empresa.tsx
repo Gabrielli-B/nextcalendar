@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   cepSpinner: { marginBottom: 12 },
   row: { flexDirection: 'row', gap: 12 },
   footer: { paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.white, borderTopWidth: 1, borderTopColor: Colors.grey100, position: 'absolute', bottom: 0, left: 0, right: 0 },
-  errorText: { color: Colors.error, fontSize: 14, textAlign: 'center', marginTop: 8 },
+  errorText: { color: Colors.error, fontSize: 14, textAlign: 'center', marginTop: 8,fontWeight:'bold' },
   loginRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingBottom: 20 },
   loginText: { color: Colors.grey400, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28 },
   loginLink: { color: Colors.gold, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28, fontWeight: '600' },

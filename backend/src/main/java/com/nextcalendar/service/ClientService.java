@@ -1,16 +1,14 @@
 package com.nextcalendar.service;
 
 import com.nextcalendar.dto.client.*;
+import com.nextcalendar.dto.login_register.RegisterRequestDTO;
 import com.nextcalendar.entity.ClientEntity;
 import com.nextcalendar.entity.UserEntity;
-import com.nextcalendar.entity.UserRole;
 import com.nextcalendar.exception.BusinessException;
 import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.mapper.ClientMapper;
 import com.nextcalendar.repository.ClientRepository;
 
-import com.nextcalendar.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.data.domain.Page;
@@ -22,59 +20,72 @@ import java.util.UUID;
 @Service
 public class ClientService {
     private final ClientRepository clientRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+
     private final ClientMapper clientMapper;
 
-    public ClientService(ClientRepository clientRepository,
-                         UserRepository userRepository,
-                         PasswordEncoder passwordEncoder,
-                         ClientMapper clientMapper) {
-
+    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper) {
         this.clientRepository=clientRepository;
-        this.userRepository=userRepository;
-        this.passwordEncoder=passwordEncoder;
         this.clientMapper=clientMapper;
+    }
+
+    @Transactional
+    public ClientEntity createClientFromRegistration(UserEntity user, RegisterRequestDTO dto) {
+
+        if (clientRepository.existsByEmail(user.getEmail())) {
+            throw new BusinessException("O e-mail " + user.getEmail() + " já está cadastrado como cliente."
+            );
+        }
+
+        ClientEntity client = new ClientEntity();
+
+        client.setUser(user);
+        client.setName(user.getName());
+        client.setPhone(dto.phone());
+        client.setEmail(user.getEmail());
+        client.setDateOfBirth(dto.dateOfBirth());
+        client.setPhotoUrl(dto.photoUrl());
+        client.setNotes(dto.notes());
+        client.setActive(true);
+
+        return clientRepository.save(client);
     }
 
     @Transactional
     public ClientProfileResponseDTO createClient(ClientCreateDTO clientDto){
 
-        if (userRepository.existsByEmail(clientDto.email()) || clientRepository.existsByEmail(clientDto.email())) {
-            throw new BusinessException("O e-mail " + clientDto.email() + " já está cadastrado no sistema.");
+        if (clientRepository.existsByEmail(clientDto.email())){
+            throw new BusinessException("o E-mail " + clientDto.email() + " já está cadastrado no sistema.");
         }
-
-        UserEntity user = new UserEntity();
-        user.setName(clientDto.name());
-        user.setEmail(clientDto.email());
-        user.setPasswordHash(passwordEncoder.encode(clientDto.password()));
-        user.setRole(UserRole.CUSTOMER);
-        user.setActive(true);
-        userRepository.save(user);
-
         ClientEntity client = clientMapper.toEntity(clientDto);
+
         ClientEntity savedClient = clientRepository.save(client);
 
         return new ClientProfileResponseDTO(savedClient);
     }
 
-
     @Transactional
     public ClientProfileResponseDTO updateClient(UUID id, ClientUpdateDTO clientDto){
 
-        ClientEntity client = clientRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Cliente",id));
+        ClientEntity client = clientRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Cliente", id));
 
-        if (clientDto.email() != null && !clientDto.email().isBlank() && !clientDto.email().equals(client.getEmail())) {
-            if (userRepository.existsByEmail(clientDto.email()) || clientRepository.existsByEmailAndIdNot(clientDto.email(), id)) {
-                throw new BusinessException("O e-mail '" + clientDto.email() + "' já está sendo usado por outro usuário.");
+        String targetEmail = clientDto.email();
+
+        if (targetEmail != null && !targetEmail.isBlank() && !targetEmail.equals(client.getEmail())) {
+            if (clientRepository.existsByEmailAndIdNot(targetEmail, id)) {
+                throw new BusinessException("O e-mail '" + targetEmail + "' já está sendo usado.");
             }
-
-            userRepository.findByEmail(client.getEmail()).ifPresent(user -> {
-                user.setEmail(clientDto.email());
-                userRepository.save(user);
-            });
         }
-        clientMapper.updateEntity(client,clientDto);
+
+        clientMapper.updateEntity(client, clientDto);
+
+        if (client.getUser() != null) {
+            if (clientDto.name() != null && !clientDto.name().isBlank()) {
+                client.getUser().setName(clientDto.name());
+            }
+            if (targetEmail != null && !targetEmail.isBlank()) {
+                client.getUser().setEmail(targetEmail);
+            }
+        }
 
         ClientEntity savedClient = clientRepository.save(client);
 
@@ -100,10 +111,5 @@ public class ClientService {
         ClientEntity client = clientRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Cliente",id));
         client.setActive(false);
         clientRepository.save(client);
-
-        userRepository.findByEmail(client.getEmail()).ifPresent(user -> {
-            user.setActive(false);
-            userRepository.save(user);
-        });
     }
 }

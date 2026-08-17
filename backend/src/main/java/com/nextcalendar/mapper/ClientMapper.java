@@ -3,19 +3,10 @@ package com.nextcalendar.mapper;
 import com.nextcalendar.dto.client.ClientCreateDTO;
 import com.nextcalendar.dto.client.ClientUpdateDTO;
 import com.nextcalendar.entity.ClientEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ClientMapper {
-
-    private final PasswordEncoder passwordEncoder;
-
-    public ClientMapper(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
-
-
 
     public ClientEntity toEntity(ClientCreateDTO dto){
         ClientEntity client = new ClientEntity();
@@ -23,7 +14,6 @@ public class ClientMapper {
         client.setName(dto.name());
         client.setPhone(dto.phone());
         client.setEmail(dto.email());
-        client.setPassword(passwordEncoder.encode(dto.password()));
         client.setDateOfBirth(dto.dateOfBirth());
         client.setPhotoUrl(dto.photoUrl());
         client.setNotes(dto.notes());

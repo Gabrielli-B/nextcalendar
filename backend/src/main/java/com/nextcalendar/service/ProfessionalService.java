@@ -25,23 +25,22 @@ public class ProfessionalService {
     private final ProfessionalRepository professionalRepository;
     private final EstablishmentRepository establishmentRepository;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ProfessionalMapper professionalMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public ProfessionalService(ProfessionalRepository professionalRepository,
                                EstablishmentRepository establishmentRepository,
                                UserRepository userRepository,
-                               PasswordEncoder passwordEncoder,
-                               ProfessionalMapper professionalMapper) {
+                               ProfessionalMapper professionalMapper,
+                               PasswordEncoder passwordEncoder) {
         this.professionalRepository = professionalRepository;
         this.establishmentRepository = establishmentRepository;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.professionalMapper = professionalMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    // Temporário enquanto não há login implementado.
-    // Quando houver autenticação, basta utilizar o estabelecimento do usuário autenticado.
+
     private EstablishmentEntity findEstablishment(UUID establishmentId) {
         return establishmentRepository.findById(establishmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
@@ -68,12 +67,15 @@ public class ProfessionalService {
         UserEntity user = new UserEntity();
         user.setName(dto.name());
         user.setEmail(dto.email());
-        user.setPasswordHash(passwordEncoder.encode(dto.password())); // Senha inicial cadastrada pelo admin
+        user.setPasswordHash(passwordEncoder.encode(dto.password()));
         user.setRole(UserRole.PROFESSIONAL);
         user.setActive(true);
-        userRepository.save(user);
+
+        UserEntity savedUser = userRepository.save(user);
 
         ProfessionalEntity professional = professionalMapper.toEntity(dto, establishment);
+        professional.setUser(savedUser);
+
         ProfessionalEntity savedProfessional = professionalRepository.save(professional);
 
         return new ProfessionalProfileResponseDTO(savedProfessional);
@@ -85,14 +87,13 @@ public class ProfessionalService {
         ProfessionalEntity professional = findProfessional(id);
 
         if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(professional.getEmail())) {
-            if (userRepository.existsByEmail(dto.email()) || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
-                throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado por outro usuário.");
-            }
+            boolean emailExistsInUsers = userRepository.findByEmail(dto.email())
+                    .filter(u -> professional.getUser() == null || !u.getId().equals(professional.getUser().getId()))
+                    .isPresent();
 
-            userRepository.findByEmail(professional.getEmail()).ifPresent(user -> {
-                user.setEmail(dto.email());
-                userRepository.save(user);
-            });
+            if (emailExistsInUsers || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
+                throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado no sistema.");
+            }
         }
 
         if (dto.cpf() != null && !dto.cpf().isBlank() && !dto.cpf().equals(professional.getCpf())) {
@@ -100,8 +101,20 @@ public class ProfessionalService {
                 throw new BusinessException("O CPF '" + dto.cpf() + "' já está sendo usado por outro profissional.");
             }
         }
-
         professionalMapper.updateEntityFromAdmin(professional, dto);
+
+        if (professional.getUser() != null) {
+            if (dto.name() != null && !dto.name().isBlank()) {
+                professional.getUser().setName(dto.name());
+            }
+            if (dto.email() != null && !dto.email().isBlank()) {
+                professional.getUser().setEmail(dto.email());
+            }
+            if (dto.active() != null) {
+                professional.getUser().setActive(dto.active());
+            }
+        }
+
         ProfessionalEntity updatedProfessional = professionalRepository.save(professional);
 
         return new ProfessionalDetailsResponseDTO(updatedProfessional);
@@ -113,17 +126,27 @@ public class ProfessionalService {
         ProfessionalEntity professional = findProfessional(id);
 
         if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(professional.getEmail())) {
-            if (userRepository.existsByEmail(dto.email()) || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
-                throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado por outro usuário.");
-            }
 
-            userRepository.findByEmail(professional.getEmail()).ifPresent(user -> {
-                user.setEmail(dto.email());
-                userRepository.save(user);
-            });
+            boolean emailExistsInUsers = userRepository.findByEmail(dto.email())
+                    .filter(u -> professional.getUser() == null || !u.getId().equals(professional.getUser().getId()))
+                    .isPresent();
+
+            if (emailExistsInUsers || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
+                throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado no sistema.");
+            }
         }
 
         professionalMapper.updateEntityFromSelf(professional, dto);
+
+        if (professional.getUser() != null) {
+            if (dto.name() != null && !dto.name().isBlank()) {
+                professional.getUser().setName(dto.name());
+            }
+            if (dto.email() != null && !dto.email().isBlank()) {
+                professional.getUser().setEmail(dto.email());
+            }
+        }
+
         ProfessionalEntity updatedProfessional = professionalRepository.save(professional);
 
         return new ProfessionalProfileResponseDTO(updatedProfessional);
@@ -179,11 +202,11 @@ public class ProfessionalService {
         ProfessionalEntity professional = findProfessional(id);
 
         professional.setActive(false);
-        professionalRepository.save(professional);
 
-        userRepository.findByEmail(professional.getEmail()).ifPresent(user -> {
-            user.setActive(false);
-            userRepository.save(user);
-        });
+        if (professional.getUser() != null) {
+            professional.getUser().setActive(false);
+        }
+
+        professionalRepository.save(professional);
     }
 }
