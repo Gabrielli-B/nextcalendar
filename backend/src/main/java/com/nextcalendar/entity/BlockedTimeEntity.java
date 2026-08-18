@@ -16,7 +16,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BlokedTimeEntity {
+public class BlockedTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
