@@ -13,6 +13,7 @@ export const RegisterSchema = z.object({
         return numbers.length >= 10 && numbers.length <= 11;
     }, 'Telefone inválido (DDD + número)'),
     password:z.string().min(6,'Mínimo 6 caracteres'),
+    dateOfBirth: z.string().min(10, 'Informe uma data de nascimento válida (DD/MM/AAAA)'),
 })
 
 export const RegisterEmpresaSchema = z.object({

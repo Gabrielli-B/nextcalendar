@@ -31,7 +31,7 @@ export default function RegisterEmpresaScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [globalError, setGlobalError] = useState('');
-  
+
   const [cepLoading, setCepLoading] = useState(false);
   const [cepManual, setCepManual] = useState(false);
 
@@ -101,7 +101,7 @@ export default function RegisterEmpresaScreen() {
       setErrors(fieldErrors);
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
       await registerEmpresa({
@@ -134,8 +134,8 @@ export default function RegisterEmpresaScreen() {
 
         <Text style={[styles.sectionTitle, { fontFamily: fontSemiBold, marginTop: 12 }]}>Dados da Empresa</Text>
         <InputField label="Razão Social" value={legalName} onChangeText={setLegalName} placeholder="Razão Social LTDA" autoCapitalize="words" error={errors.legalName} />
-        <InputField label="Nome Fantasia" value={companyName} onChangeText={setCompanyName} placeholder="Studio Vision" autoCapitalize="words" error={errors.companyName} />
-        <InputField label="CPF/CNPJ" value={cnpj} onChangeText={setCnpj} placeholder="00000000000000" keyboardType="number-pad" error={errors.cnpj} />
+        <InputField label="Nome Fantasia" value={companyName} onChangeText={setCompanyName} placeholder="Nome da Empresa" autoCapitalize="words" error={errors.companyName} />
+        <InputField label="CNPJ" value={cnpj} onChangeText={setCnpj} placeholder="00000000000000" keyboardType="number-pad" error={errors.cnpj} />
         <InputField label="Celular" value={phone} onChangeText={(text) => setPhone(formatPhone(text))} placeholder="(99) 99999-9999" keyboardType="phone-pad" error={errors.phone} />
         <InputField label="Whatsapp" value={whatsapp} onChangeText={(text) => setWhatsapp(formatPhone(text))} placeholder="(99) 99999-9999" keyboardType="phone-pad" error={errors.whatsapp} />
 
@@ -174,7 +174,7 @@ export default function RegisterEmpresaScreen() {
         <InputField label="Complemento" value={complement} onChangeText={setComplement} placeholder="Loja 99" error={errors.complement} />
 
         {globalError ? <Text style={styles.errorText}>{globalError}</Text> : null}
-        
+
         <View style={styles.loginRow}>
           <Text style={[styles.loginText, { fontFamily: fontRegular }]}>Já tem uma conta? </Text>
           <Link href="/login" style={[styles.loginLink, { fontFamily: fontSemiBold }]}>Entrar</Link>
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   cepSpinner: { marginBottom: 12 },
   row: { flexDirection: 'row', gap: 12 },
   footer: { paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.white, borderTopWidth: 1, borderTopColor: Colors.grey100, position: 'absolute', bottom: 0, left: 0, right: 0 },
-  errorText: { color: Colors.error, fontSize: 14, textAlign: 'center', marginTop: 8,fontWeight:'bold' },
+  errorText: { color: Colors.error, fontSize: 14, textAlign: 'center', marginTop: 8, fontWeight: 'bold' },
   loginRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 8, paddingBottom: 20 },
   loginText: { color: Colors.grey400, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28 },
   loginLink: { color: Colors.gold, fontSize: 14, lineHeight: 21.7, letterSpacing: -0.28, fontWeight: '600' },

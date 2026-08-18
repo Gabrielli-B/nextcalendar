@@ -20,17 +20,20 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final EstablishmentRepository establishmentRepository;
+    private final ClientService clientService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
 
     public AuthService(UserRepository userRepository,
                        EstablishmentRepository establishmentRepository,
+                       ClientService clientService,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        EmailService emailService) {
         this.userRepository = userRepository;
         this.establishmentRepository = establishmentRepository;
+        this.clientService = clientService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.emailService = emailService;
@@ -105,6 +108,10 @@ public class AuthService {
             est.setAddress(address);
 
             establishmentRepository.save(est);
+        }
+
+        if (saved.getRole() == UserRole.CUSTOMER) {
+            clientService.createClientFromRegistration(saved, dto);
         }
         
         emailService.sendConfirmationEmail(saved.getEmail(), saved.getName());

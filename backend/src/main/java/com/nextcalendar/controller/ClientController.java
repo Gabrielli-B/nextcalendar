@@ -5,6 +5,7 @@ import com.nextcalendar.dto.client.*;
 import com.nextcalendar.service.ClientService;
 import jakarta.validation.Valid;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,7 @@ public class ClientController implements ClientApi {
 
     @Override
     @GetMapping("/search")
-    public Page<ClientMinResponseDTO> findClientsByName(@RequestParam(defaultValue = "") String name, Pageable pageable){return clientService.findClientsByName(name, pageable);}
+    public Page<ClientMinResponseDTO> findClientsByName(@RequestParam(defaultValue = "") String name, @ParameterObject Pageable pageable){return clientService.findClientsByName(name, pageable);}
 
     @Override
     @PutMapping("/{id}")

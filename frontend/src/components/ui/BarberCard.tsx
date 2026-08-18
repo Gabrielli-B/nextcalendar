@@ -27,7 +27,7 @@ export function BarberCard({ barber }: BarberCardProps) {
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.85}
-      onPress={() => router.push(`/barber/${barber.id}`)}>
+      onPress={() => router.push(`/barber/${barber.id}` as any)}>
       <Image
         source={{ uri: barber.imageUri ?? 'https://api.builder.io/api/v1/image/assets/TEMP/barber-placeholder' }}
         style={styles.image}

@@ -25,21 +25,19 @@ public class ClientEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
+    private UserEntity user;
 
     @OneToOne(mappedBy = "client")
     private TechnicalSheetEntity technicalSheet;
 
-    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
     private String phone;
 
-    @Column(nullable = false)
     private String email;
-
-    @Column(nullable = false)
-    private String password;
 
     private LocalDate dateOfBirth;
     private String photoUrl;
@@ -51,5 +49,13 @@ public class ClientEntity {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public String getName() {
+        return (this.user != null) ? this.user.getName() : this.name;
+    }
+
+    public String getEmail() {
+        return (this.user != null) ? this.user.getEmail() : this.email;
+    }
 
 }

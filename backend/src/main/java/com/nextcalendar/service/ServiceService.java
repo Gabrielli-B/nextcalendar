@@ -14,6 +14,7 @@ import com.nextcalendar.repository.ServiceRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -39,6 +40,7 @@ public class ServiceService {
                 .orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
     }
 
+    @Transactional
     public ServiceMinResponseDTO createService(UUID establishmentId, ServiceCreateDTO serviceDTO){
         //temporário enquanto não há login
         EstablishmentEntity establishment = findEstablishment(establishmentId);
@@ -67,6 +69,7 @@ public class ServiceService {
         return new ServiceMinResponseDTO(savedService);
     }
 
+    @Transactional
     public ServiceMinResponseDTO updateService(UUID establishmentId, UUID idService, ServiceUpdateDTO serviceDTO){
         EstablishmentEntity establishment = findEstablishment(establishmentId);
 
@@ -84,6 +87,7 @@ public class ServiceService {
         return new ServiceMinResponseDTO(updatedService);
     }
 
+    @Transactional(readOnly = true)
     public Page<ServiceMinResponseDTO> findServicesByName(String searchName, UUID establishmentId, Pageable pageable){
 
         EstablishmentEntity establishment = findEstablishment(establishmentId);
@@ -92,6 +96,8 @@ public class ServiceService {
                 .map(ServiceMinResponseDTO::new);
     }
 
+
+    @Transactional(readOnly = true)
     public  Page<ServiceMinResponseDTO> findAllServices(UUID establishmentId, Pageable pageable){
 
         EstablishmentEntity establishment = findEstablishment(establishmentId);
@@ -100,6 +106,8 @@ public class ServiceService {
                 .map(ServiceMinResponseDTO::new);
     }
 
+
+    @Transactional
     public void deleteService(UUID id){
         ServiceEntity service = serviceRepository.findByIdAndActiveTrue(id)
                 .orElseThrow(()->new EntityNotFoundException("Serviço",id));

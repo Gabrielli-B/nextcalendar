@@ -23,9 +23,9 @@ export function useAppFonts() {
 
   return {
     loaded,
-    fontRegular: loaded ? 'WorkSans-Regular' : undefined,
-    fontMedium: loaded ? 'WorkSans-Medium' : undefined,
-    fontSemiBold: loaded ? 'WorkSans-SemiBold' : undefined,
-    fontBold: loaded ? 'WorkSans-Bold' : undefined,
+    fontRegular: loaded ? 'WorkSans-Regular' : 'System',
+    fontMedium: loaded ? 'WorkSans-Medium' : 'System',
+    fontSemiBold: loaded ? 'WorkSans-SemiBold' : 'System',
+    fontBold: loaded ? 'WorkSans-Bold' : 'System',
   };
 }

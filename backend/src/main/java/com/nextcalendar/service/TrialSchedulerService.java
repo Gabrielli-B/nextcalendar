@@ -49,7 +49,8 @@ public class TrialSchedulerService {
             long diasRestantes = java.time.temporal.ChronoUnit.DAYS.between(now, e.getTrialEndDate());
             log.warn("[TRIAL-AVISO] Estabelecimento '{}' (id={}) expira em {} dia(s). Enviar notificação de aviso.",
                     e.getName(), e.getId(), diasRestantes);
-            // TODO: notificationService.sendTrialWarning(e, diasRestantes);
+            log.info("[TRIAL-AVISO] Notificação pendente para '{}' (id={}) — {} dia(s) restante(s). Implementar notificationService.sendTrialWarning().",
+                    e.getName(), e.getId(), diasRestantes);
         });
 
         // UC05 passo 4a — Trial expirado → bloquear funcionalidades premium + e-mail upgrade
@@ -59,7 +60,8 @@ public class TrialSchedulerService {
         expirados.forEach(e -> {
             log.warn("[TRIAL-EXPIRADO] Estabelecimento '{}' (id={}) com trial vencido desde {}. Enviar e-mail de upgrade.",
                     e.getName(), e.getId(), e.getTrialEndDate());
-            // TODO: notificationService.sendTrialExpiredUpgradeEmail(e);
+            log.info("[TRIAL-EXPIRADO] E-mail de upgrade pendente para '{}' (id={}). Implementar notificationService.sendTrialExpiredUpgradeEmail().",
+                    e.getName(), e.getId());
         });
 
         log.info("[TRIAL-CHECK] Verificação concluída: {} aviso(s), {} expirado(s).",
