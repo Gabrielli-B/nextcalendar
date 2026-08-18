@@ -1,6 +1,8 @@
 package com.nextcalendar.exception;
 
 import com.nextcalendar.dto.ValidationErrorResponseDTO;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PessimisticLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -59,4 +61,10 @@ public class GlobalExceptionHandler {
                 .body(ex.getMessage());
     }
 
+    @ExceptionHandler({OptimisticLockException.class, PessimisticLockException.class})
+    public ResponseEntity<String> handleLockConflict(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body("Este horário acabou de ser reservado por outro cliente. Por favor, escolha outro horário.");
+    }
 }
