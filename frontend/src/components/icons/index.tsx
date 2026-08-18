@@ -206,3 +206,38 @@ export function QRTabIcon({ size = 28 }: { size?: number }) {
     </Svg>
   );
 }
+export function CalendarTabIcon ({
+  color = Colors.grey400,
+  size = 24,
+}:{
+  color?:string;
+  size?:number;
+}){
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect
+        x={3}
+        y={4}
+        width={18}
+        height={17}
+        rx={2}
+        stroke={color}
+        strokeWidth={2}
+      />
+
+      <Path
+        d="M16 2v4M8 2v4M3 10h18"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+
+      <Path
+        d="M8 14h2M14 14h2M8 18h2M14 18h2"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  )
+}
