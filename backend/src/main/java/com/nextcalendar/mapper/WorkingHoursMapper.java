@@ -4,7 +4,9 @@ import com.nextcalendar.dto.appointment.WorkingHoursCreateDTO;
 import com.nextcalendar.dto.appointment.WorkingHoursUpdateDTO;
 import com.nextcalendar.entity.ProfessionalEntity;
 import com.nextcalendar.entity.WorkingHoursEntity;
+import org.springframework.stereotype.Component;
 
+@Component
 public class WorkingHoursMapper {
 
     public WorkingHoursEntity toEntity(WorkingHoursCreateDTO dto, ProfessionalEntity professional) {
