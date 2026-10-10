@@ -19,6 +19,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -100,7 +101,7 @@ class AttendanceAndPhotoIntegrationTest {
         establishment = new EstablishmentEntity();
         establishment.setName("Barbearia VIP");
         establishment.setLegalName("Barbearia VIP LTDA");
-        establishment.setCnpj(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 14));
+        establishment.setCnpj(String.format("%014d", ThreadLocalRandom.current().nextLong(100_000_000_000_000L)));
         establishment.setEmail(managerUser.getEmail());
         establishment.setPhone("11999990000");
         establishment.setOwnerId(managerUser.getId());
@@ -127,7 +128,7 @@ class AttendanceAndPhotoIntegrationTest {
         professionalA.setEstablishment(establishment);
         professionalA.setName(professionalUserA.getName());
         professionalA.setEmail(professionalUserA.getEmail());
-        professionalA.setCpf(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 11));
+        professionalA.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
         professionalA.setPhone("11988881111");
         professionalA.setActive(true);
         professionalA = professionalRepository.save(professionalA);
@@ -148,7 +149,7 @@ class AttendanceAndPhotoIntegrationTest {
         professionalB.setEstablishment(establishment);
         professionalB.setName(professionalUserB.getName());
         professionalB.setEmail(professionalUserB.getEmail());
-        professionalB.setCpf(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 11));
+        professionalB.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
         professionalB.setPhone("11988882222");
         professionalB.setActive(true);
         professionalB = professionalRepository.save(professionalB);

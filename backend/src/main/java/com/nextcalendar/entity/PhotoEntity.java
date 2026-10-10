@@ -44,8 +44,7 @@ public class PhotoEntity {
     @Column(length = 500)
     private String caption;
 
-    @Lob
-    @Column(nullable = false, columnDefinition = "BLOB")
+    @Column(nullable = false)
     private byte[] data;
 
     @Column(nullable = false)

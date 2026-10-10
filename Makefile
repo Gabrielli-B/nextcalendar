@@ -1,85 +1,164 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NextCalendar — atalhos de desenvolvimento
+#
+# Uso: `make help` para listar os comandos.
+# Funciona em Linux, macOS e Windows (GNU Make + shell compatível com POSIX).
+# ─────────────────────────────────────────────────────────────────────────────
+
+.DEFAULT_GOAL := help
+
+C_CYAN  := \033[36m
+C_GREEN := \033[32m
+C_RESET := \033[0m
+
+BACKEND_DIR   := backend
+FRONTEND_DIR  := frontend
+BARBEARIA_DIR := AgenteBarbearia
+
+# Detecta Windows (GNU Make define OS=Windows_NT nas plataformas Windows)
+ifeq ($(OS),Windows_NT)
+  WRAPPER := mvnw.cmd
+  RM_DIR  := rd /s /q
+else
+  WRAPPER := ./mvnw
+  RM_DIR  := rm -rf
+endif
+
+# O Maven Wrapper só funciona se .mvn/wrapper/maven-wrapper.properties existir;
+# caso contrário, usa o Maven instalado no sistema.
+ifneq ($(wildcard $(BACKEND_DIR)/.mvn/wrapper/maven-wrapper.properties),)
+  MVN := $(WRAPPER)
+else
+  MVN := mvn
+endif
+
 .PHONY: help run dev \
+        db-up db-down db-logs db-status \
         backend-run backend-test backend-build backend-clean \
         frontend-start frontend-android frontend-ios frontend-web \
-        frontend-install frontend-lint frontend-clean frontend-reset
-
-HELP_PREFIX := \033[36m
-HELP_SUFFIX := \033[0m
+        frontend-install frontend-lint frontend-clean frontend-reset \
+        barbearia-db-up barbearia-db-down barbearia-api barbearia-bridge
 
 # ── Ajuda ─────────────────────────────────────────────────────────────────────
 
 help:
-	@echo "$(HELP_PREFIX)Comandos disponíveis:$(HELP_SUFFIX)"
-	@echo ""
-	@echo "  $(HELP_PREFIX)Atalhos$(HELP_SUFFIX)"
-	@echo "  make help                 Exibe esta ajuda"
-	@echo "  make run                  Inicia o backend"
-	@echo "  make dev                  Inicia backend + frontend juntos"
-	@echo ""
-	@echo "  $(HELP_PREFIX)Backend$(HELP_SUFFIX)"
-	@echo "  make backend-run          Roda a aplicação Spring Boot"
-	@echo "  make backend-test         Executa os testes do backend"
-	@echo "  make backend-build        Compila e empacota o backend"
-	@echo "  make backend-clean        Remove os artefatos de build"
-	@echo ""
-	@echo "  $(HELP_PREFIX)Frontend$(HELP_SUFFIX)"
-	@echo "  make frontend-start       Inicia o Expo"
-	@echo "  make frontend-android     Inicia no Android"
-	@echo "  make frontend-ios         Inicia no iOS"
-	@echo "  make frontend-web         Inicia no browser"
-	@echo "  make frontend-install     Instala as dependências"
-	@echo "  make frontend-lint        Executa o linter"
-	@echo "  make frontend-clean       Remove node_modules"
-	@echo "  make frontend-reset       Remove node_modules e reinstala"
+	@printf '%b\n' \
+	  "$(C_CYAN)Comandos disponíveis:$(C_RESET)" \
+	  "" \
+	  "  $(C_CYAN)Atalhos$(C_RESET)" \
+	  "  make help                 Exibe esta ajuda" \
+	  "  make run                  Inicia o backend" \
+	  "  make dev                  Inicia backend + frontend juntos" \
+	  "" \
+	  "  $(C_CYAN)Banco de dados (PostgreSQL via Docker)$(C_RESET)" \
+	  "  make db-up                Sobe o PostgreSQL" \
+	  "  make db-down              Para o PostgreSQL" \
+	  "  make db-logs              Exibe os logs do PostgreSQL" \
+	  "  make db-status            Mostra o status dos containers" \
+	  "" \
+	  "  $(C_CYAN)Backend (Spring Boot)$(C_RESET)" \
+	  "  make backend-run          Roda a aplicação Spring Boot" \
+	  "  make backend-test         Executa os testes do backend" \
+	  "  make backend-build        Compila e empacota o backend" \
+	  "  make backend-clean        Remove os artefatos de build" \
+	  "" \
+	  "  $(C_CYAN)Frontend (Expo)$(C_RESET)" \
+	  "  make frontend-start       Inicia o Expo" \
+	  "  make frontend-android     Inicia no Android" \
+	  "  make frontend-ios         Inicia no iOS" \
+	  "  make frontend-web         Inicia no browser" \
+	  "  make frontend-install     Instala as dependências" \
+	  "  make frontend-lint        Executa o linter" \
+	  "  make frontend-clean       Remove node_modules" \
+	  "  make frontend-reset       Remove node_modules e reinstala" \
+	  "" \
+	  "  $(C_CYAN)Agente de Barbearia$(C_RESET)" \
+	  "  make barbearia-db-up      Sobe MongoDB + Evolution API (Docker)" \
+	  "  make barbearia-db-down    Para os serviços do Docker" \
+	  "  make barbearia-api        Roda a API .NET do agente" \
+	  "  make barbearia-bridge     Roda o bridge do WhatsApp (Node.js)"
 
 # ── Atalhos ───────────────────────────────────────────────────────────────────
 
 run: backend-run
 
-# Sobe backend e frontend em paralelo
-# O backend é executado em uma nova janela do CMD
-# O frontend é executado no terminal atual
-
+# Sobe backend (em background) e frontend (em primeiro plano).
+# Ao encerrar (Ctrl+C ou fim do frontend), o backend também é finalizado.
 dev:
-	@echo "$(HELP_PREFIX)Iniciando backend e frontend...$(HELP_SUFFIX)"
-	@start cmd /k "cd backend && mvnw spring-boot\:run"
-	@cd frontend && npx expo start
+	@printf '%b\n' "$(C_GREEN)Iniciando backend (background) + frontend...$(C_RESET)"
+ifeq ($(OS),Windows_NT)
+	@start "NextCalendar Backend" cmd /k "$(MVN) -f $(BACKEND_DIR)/pom.xml spring-boot:run"
+	@$(MAKE) --no-print-directory frontend-start
+else
+	@cd $(BACKEND_DIR) && $(MVN) spring-boot:run & \
+	  backend_pid=$$!; \
+	  trap 'kill $$backend_pid 2>/dev/null || true' EXIT INT TERM; \
+	  $(MAKE) --no-print-directory frontend-start
+endif
+
+# ── Banco de dados ────────────────────────────────────────────────────────────
+
+db-up:
+	@docker compose up -d
+
+db-down:
+	@docker compose down
+
+db-logs:
+	@docker compose logs -f postgres
+
+db-status:
+	@docker compose ps
 
 # ── Backend ───────────────────────────────────────────────────────────────────
 
 backend-run:
-	@cd backend && ./mvnw spring-boot\:run
+	@cd $(BACKEND_DIR) && $(MVN) spring-boot:run
 
 backend-test:
-	@cd backend && ./mvnw test
+	@cd $(BACKEND_DIR) && $(MVN) test
 
 backend-build:
-	@cd backend && ./mvnw package -DskipTests
+	@cd $(BACKEND_DIR) && $(MVN) package -DskipTests
 
 backend-clean:
-	@cd backend && ./mvnw clean
+	@cd $(BACKEND_DIR) && $(MVN) clean
 
 # ── Frontend ──────────────────────────────────────────────────────────────────
 
 frontend-start:
-	@cd frontend && npx expo start
+	@cd $(FRONTEND_DIR) && npm start
 
 frontend-android:
-	@cd frontend && npx expo start --android
+	@cd $(FRONTEND_DIR) && npm run android
 
 frontend-ios:
-	@cd frontend && npx expo start --ios
+	@cd $(FRONTEND_DIR) && npm run ios
 
 frontend-web:
-	@cd frontend && npx expo start --web
+	@cd $(FRONTEND_DIR) && npm run web
 
 frontend-install:
-	@cd frontend && npm install
+	@cd $(FRONTEND_DIR) && npm install
 
 frontend-lint:
-	@cd frontend && npx expo lint
+	@cd $(FRONTEND_DIR) && npm run lint
 
 frontend-clean:
-	@cd frontend && rd /s /q node_modules
+	@cd $(FRONTEND_DIR) && $(RM_DIR) node_modules
 
 frontend-reset: frontend-clean frontend-install
+
+# ── Agente de Barbearia ───────────────────────────────────────────────────────
+
+barbearia-db-up:
+	@cd $(BARBEARIA_DIR) && docker compose up -d
+
+barbearia-db-down:
+	@cd $(BARBEARIA_DIR) && docker compose down
+
+barbearia-api:
+	@cd $(BARBEARIA_DIR)/AgenteBarbearia.Api && dotnet run
+
+barbearia-bridge:
+	@cd $(BARBEARIA_DIR)/whatsapp-bridge && node index.js

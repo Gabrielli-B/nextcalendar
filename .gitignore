@@ -1,7 +1,7 @@
 # Backend (Spring Boot)
 backend/target/
+# O jar do wrapper não é necessário (wrapper "script"); o properties É obrigatório
 backend/.mvn/wrapper/maven-wrapper.jar
-backend/.mvn/wrapper/maven-wrapper.properties
 backend/HELP.md
 backend/.idea/
 backend/.vscode/

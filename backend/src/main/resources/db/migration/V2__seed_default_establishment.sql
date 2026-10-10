@@ -1,11 +1,12 @@
 -- ═══════════════════════════════════════════════════════════════════════════
--- V1: Seed do estabelecimento padrão (single-tenant)
+-- V2: Seed do estabelecimento padrão (single-tenant)
 --
 -- UUID FIXO: 11111111-1111-1111-1111-111111111111
 -- Este valor é a fonte de verdade para o frontend e o backend.
 -- Atualize o .env do frontend para bater com este UUID.
 --
 -- Sintaxe PostgreSQL: INSERT INTO ... ON CONFLICT (id) DO NOTHING (idempotente)
+-- Requer o schema criado na V1.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ── Estabelecimento padrão ───────────────────────────────────────────────────
@@ -77,11 +78,23 @@ INSERT INTO services (id, establishment_id, name, price, duration, category, act
 VALUES ('22222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'Barba', 40.00, 20, 'Barba', TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT (id) DO NOTHING;
 
--- ── Produto de teste ─────────────────────────────────────────────────────────
+-- ── Produtos de teste ────────────────────────────────────────────────────────
 INSERT INTO products (id, establishment_id, name, category, price, stock_quantity, active, created_at, updated_at)
 VALUES (
     '33333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111',
     'Pomada Modeladora', 'Finalizador', 50.00, 20, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO products (id, establishment_id, name, category, price, stock_quantity, active, created_at, updated_at)
+VALUES (
+    '33333333-3333-3333-3333-333333333334', '11111111-1111-1111-1111-111111111111',
+    'Óleo para Barba', 'Barba', 45.00, 15, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+) ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO products (id, establishment_id, name, category, price, stock_quantity, active, created_at, updated_at)
+VALUES (
+    '33333333-3333-3333-3333-333333333335', '11111111-1111-1111-1111-111111111111',
+    'Shampoo Anticaspa', 'Cabelo', 38.00, 10, TRUE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 ) ON CONFLICT (id) DO NOTHING;
 
 -- ── Cliente de teste ─────────────────────────────────────────────────────────
