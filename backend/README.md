@@ -96,7 +96,8 @@ src/main/java/com/nextcalendar/
 ├── exception/     # GlobalExceptionHandler (400/403/404/409/422)
 ├── mapper/        # mappers manuais (DTO <-> entidade)
 ├── repository/    # Spring Data repositories
-└── service/       # regras de negócio (AppointmentService, OrderService, ...)
+├── service/       # regras de negócio (AppointmentService, OrderService, ...)
+└── validation/    # validadores de domínio (CnpjValidator)
 ```
 
 ## Testes
@@ -109,8 +110,14 @@ make backend-test
 - Cobrem agendamento (slots/conflitos/cancelamento), comanda, profissionais/segurança e
   atendimentos/fotos.
 
-### Testes E2E (HURL) — planejados
+### Testes E2E (HURL)
 
-O plano de implementação da suíte E2E está em
-[`specs/e2e-tests-plan.md`](specs/e2e-tests-plan.md): 15 arquivos `.hurl` rodando contra o
-backend real (PostgreSQL), a criar em `backend/e2e/`.
+```bash
+make backend-run            # terminal 1 — backend em http://localhost:8080
+make backend-e2e            # terminal 2 — 15 arquivos, 280+ requests
+make backend-e2e FILES=14-attendance.hurl
+```
+
+- Rodam contra o **backend real** (PostgreSQL): `make db-up` antes.
+- Suíte inteira verdes (~5 s); relatório em `backend/e2e/report/index.html`.
+- Detalhes em [`e2e/README.md`](e2e/README.md) e plano em [`specs/e2e-tests-plan.md`](specs/e2e-tests-plan.md).
