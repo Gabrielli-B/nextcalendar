@@ -37,7 +37,7 @@ export function AtendimentoScreen({ appointment, onBack, onSaved }: AtendimentoS
   const { fontRegular, fontSemiBold, fontBold } = useAppFonts();
   const insets = useSafeAreaInsets();
 
-  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [existingEntryId, setExistingEntryId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
@@ -45,9 +45,15 @@ export function AtendimentoScreen({ appointment, onBack, onSaved }: AtendimentoS
 
   const hasClient = !!appointment.clientId;
 
+  /**
+   * `loadingInitial` derivado: sem cliente não há o que carregar; com
+   * cliente, carrega até a carga inicial concluir. Nenhum `setState`
+   * síncrono no efeito (`react-hooks/set-state-in-effect`).
+   */
+  const loadingInitial = hasClient && !initialLoaded;
+
   useEffect(() => {
     if (!hasClient) {
-      setLoadingInitial(false);
       return;
     }
 
@@ -69,7 +75,7 @@ export function AtendimentoScreen({ appointment, onBack, onSaved }: AtendimentoS
       } catch {
 
       } finally {
-        if (active) setLoadingInitial(false);
+        if (active) setInitialLoaded(true);
       }
     }
     load();

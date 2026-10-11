@@ -34,29 +34,63 @@ export default function ServicosScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [services, setServices] = useState<ServiceResponse[]>([]);
-  const [loadingServices, setLoadingServices] = useState(false);
   const [errorServices, setErrorServices] = useState(false);
+  /** establishmentId da última carga concluída (sucesso ou falha). */
+  const [loadedForEst, setLoadedForEst] = useState<string | null>(null);
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
   const [editingService, setEditingService] = useState<ServiceResponse | null>(null);
 
+  /**
+   * `loading` derivado dos dados: enquanto o establishment atual não tiver
+   * carga concluída, está carregando. Nenhum `setState` síncrono no efeito
+   * (`react-hooks/set-state-in-effect`).
+   */
+  const loadingServices = !!establishmentId && loadedForEst !== establishmentId;
+
+  /**
+   * Carga inicial dos serviços.
+   *
+   * Toda a cadeia vive no efeito, com `setState` apenas em callbacks de
+   * promise e guarda `active` (`react-hooks/set-state-in-effect`).
+   */
+  useEffect(() => {
+    if (!loadingEstablishment || !establishmentId) return;
+
+    const estId = establishmentId;
+    let active = true;
+
+    getServices(estId)
+      .then((page) => {
+        if (!active) return;
+        setServices(page.content);
+        setErrorServices(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setErrorServices(true);
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoadedForEst(estId);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [loadingEstablishment, establishmentId]);
+
+  /** Recarga disparada por handlers (pull-to-refresh, pós-mutação). */
   async function loadServices(estId: string) {
-    setLoadingServices(true);
-    setErrorServices(false);
     try {
       const page = await getServices(estId);
       setServices(page.content);
+      setErrorServices(false);
     } catch {
       setErrorServices(true);
     } finally {
-      setLoadingServices(false);
+      setLoadedForEst(estId);
     }
   }
-
-  useEffect(() => {
-    if (!loadingEstablishment && establishmentId) {
-      loadServices(establishmentId);
-    }
-  }, [loadingEstablishment, establishmentId]);
 
   async function handleRefresh() {
     setRefreshing(true);

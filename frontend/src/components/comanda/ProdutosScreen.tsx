@@ -58,20 +58,48 @@ export default function ProdutosScreen() {
   // modal: undefined = fechado | null = novo | produto = edição (apenas gestor)
   const [formTarget, setFormTarget] = useState<ProductResponse | null | undefined>(undefined);
 
+  /**
+   * Carga inicial/por filtro.
+   *
+   * Toda a cadeia vive no efeito, com `setState` apenas em callbacks de
+   * promise e guarda `active` para descartar respostas canceladas
+   * (`react-hooks/set-state-in-effect`).
+   */
+  useEffect(() => {
+    let active = true;
+
+    listProducts(establishmentId)
+      .then((list) => {
+        if (!active) return;
+        setProducts(list);
+        setLoadError('');
+      })
+      .catch((err) => {
+        if (!active) return;
+        setLoadError(getApiErrorMessage(err, 'Não foi possível carregar os produtos.'));
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [establishmentId]);
+
+  /** Recarga disparada por handlers (pull-to-refresh, pós-mutação). */
   const load = useCallback(async () => {
-    setLoadError('');
     try {
-      setProducts(await listProducts(establishmentId));
+      const list = await listProducts(establishmentId);
+      setProducts(list);
+      setLoadError('');
     } catch (err) {
       setLoadError(getApiErrorMessage(err, 'Não foi possível carregar os produtos.'));
     } finally {
       setLoading(false);
     }
   }, [establishmentId]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   useEffect(() => {
     if (!feedback) return;

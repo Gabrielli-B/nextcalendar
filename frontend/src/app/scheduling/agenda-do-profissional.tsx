@@ -218,7 +218,7 @@ export default function AgendaDoProfissionalScreen() {
       {viewMode !== 'Linha do tempo' ? (
         <View style={styles.placeholder}>
           <Text style={[styles.placeholderText, { fontFamily: fontRegular }]}>
-            Visão "{viewMode}" em breve.
+            Visão &quot;{viewMode}&quot; em breve.
           </Text>
         </View>
       ) : loading ? (

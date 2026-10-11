@@ -80,7 +80,7 @@ export default function ProfissionalPerfilScreen() {
                 </Text>
                 {professional?.nickname ? (
                   <Text style={[styles.profileNickname, { fontFamily: fontRegular }]}>
-                    "{professional.nickname}"
+                    &quot;{professional.nickname}&quot;
                   </Text>
                 ) : null}
                 <Text style={[styles.profileEstablishment, { fontFamily: fontSemiBold }]}>

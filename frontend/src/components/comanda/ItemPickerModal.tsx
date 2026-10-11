@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -63,13 +63,22 @@ export function ItemPickerModal({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  useEffect(() => {
+  /**
+   * Limpa a seleção toda vez que o modal abre.
+   * Padrão "ajustar estado no render" (react.dev) em vez de efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   */
+  const [prevVisible, setPrevVisible] = useState(visible);
+
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
+
     if (visible) {
       setQuery('');
       setSelectedId(null);
       setQuantity(1);
     }
-  }, [visible]);
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

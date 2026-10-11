@@ -351,7 +351,7 @@ export default function ProfissionalHomeScreen() {
                   Nenhum agendamento para este dia
                 </Text>
                 <Text style={[styles.feedbackText, { fontFamily: fontRegular }]}>
-                  Toque em "+ Novo Agendamento" para marcar um cliente.
+                  Toque em &quot;+ Novo Agendamento&quot; para marcar um cliente.
                 </Text>
               </View>
             )}

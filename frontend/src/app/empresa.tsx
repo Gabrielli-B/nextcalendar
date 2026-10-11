@@ -71,6 +71,22 @@ export default function EmpresaScreen() {
   const [neighborhood, setNeighborhood] = useState('');
   const [state, setState] = useState('');
 
+  function populateForm(data: EstablishmentResponse) {
+    setEstablishmentId(data.id);
+    setName(data.name ?? '');
+    setEmail(data.email ?? '');
+    setPhone(data.phone ?? '');
+    setWhatsapp(data.whatsapp ?? '');
+    setCnpj(data.cnpj ?? '');
+    setCep(data.address?.cep ?? '');
+    setStreet(data.address?.street ?? '');
+    setNumber(data.address?.number ?? '');
+    setComplement(data.address?.complement ?? '');
+    setCity(data.address?.city ?? '');
+    setNeighborhood(data.address?.neighborhood ?? '');
+    setState(data.address?.state ?? '');
+  }
+
   // ─── UC03: Carregar dados ao montar ──────────────────────────────────
 
   useEffect(() => {
@@ -94,22 +110,6 @@ export default function EmpresaScreen() {
 
     loadEstablishment();
   }, [user?.id]);
-
-  function populateForm(data: EstablishmentResponse) {
-    setEstablishmentId(data.id);
-    setName(data.name ?? '');
-    setEmail(data.email ?? '');
-    setPhone(data.phone ?? '');
-    setWhatsapp(data.whatsapp ?? '');
-    setCnpj(data.cnpj ?? '');
-    setCep(data.address?.cep ?? '');
-    setStreet(data.address?.street ?? '');
-    setNumber(data.address?.number ?? '');
-    setComplement(data.address?.complement ?? '');
-    setCity(data.address?.city ?? '');
-    setNeighborhood(data.address?.neighborhood ?? '');
-    setState(data.address?.state ?? '');
-  }
 
   // ─── UC02: Consultar CEP ao sair do campo ─────────────────────────────
 

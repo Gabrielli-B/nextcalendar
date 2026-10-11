@@ -96,6 +96,42 @@ export default function ComandaScreen() {
     if (syncDiscount) setDiscountText(o.discountAmount > 0 ? numberToBRLMask(o.discountAmount) : '');
   }, []);
 
+  /**
+   * Abre a comanda.
+   *
+   * Toda a cadeia vive no efeito, com `setState` apenas em callbacks de
+   * promise e guarda `active` (`react-hooks/set-state-in-effect`).
+   */
+  useEffect(() => {
+    let active = true;
+
+    const request = orderIdParam
+      ? getOrder(establishmentId, orderIdParam)
+      : appointmentId
+        ? openOrder(establishmentId, appointmentId)
+        : Promise.reject(new Error('Agendamento não informado.'));
+
+    request
+      .then((result) => {
+        if (!active) return;
+        applyOrder(result, true);
+        setLoadError('');
+      })
+      .catch((err) => {
+        if (!active) return;
+        setLoadError(getApiErrorMessage(err, 'Não foi possível abrir a comanda.'));
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [establishmentId, appointmentId, orderIdParam, applyOrder]);
+
+  /** Recarga disparada por handlers (pode ligar o loading de imediato). */
   const loadOrder = useCallback(async () => {
     setLoading(true);
     setLoadError('');
@@ -105,16 +141,13 @@ export default function ComandaScreen() {
       else if (appointmentId) result = await openOrder(establishmentId, appointmentId);
       else throw new Error('Agendamento não informado.');
       applyOrder(result, true);
+      setLoadError('');
     } catch (err) {
       setLoadError(getApiErrorMessage(err, 'Não foi possível abrir a comanda.'));
     } finally {
       setLoading(false);
     }
   }, [establishmentId, appointmentId, orderIdParam, applyOrder]);
-
-  useEffect(() => {
-    loadOrder();
-  }, [loadOrder]);
 
   // ─── Helper: executa uma ação que devolve a comanda atualizada ───────────
   async function run(action: () => Promise<Order>, syncDiscount = false): Promise<boolean> {

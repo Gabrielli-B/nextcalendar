@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -41,17 +41,28 @@ export function ProductFormModal({ visible, product, onClose, onSubmit, onDelete
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState('');
 
-  // Preenche (ou limpa) o formulário toda vez que o modal abre
-  useEffect(() => {
-    if (!visible) return;
-    setName(product?.name ?? '');
-    setCategory(product?.category ?? '');
-    setPrice(product ? numberToBRLMask(product.price) : '');
-    setStock(product ? String(product.stockQuantity) : '');
-    setConfirmDelete(false);
-    setSubmitting(false);
-    setError('');
-  }, [visible, product]);
+  /**
+   * Preenche (ou limpa) o formulário toda vez que o modal abre.
+   * Padrão "ajustar estado no render" (react.dev) em vez de efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   */
+  const [prevVisible, setPrevVisible] = useState(visible);
+  const [prevProduct, setPrevProduct] = useState(product);
+
+  if (visible !== prevVisible || product !== prevProduct) {
+    setPrevVisible(visible);
+    setPrevProduct(product);
+
+    if (visible) {
+      setName(product?.name ?? '');
+      setCategory(product?.category ?? '');
+      setPrice(product ? numberToBRLMask(product.price) : '');
+      setStock(product ? String(product.stockQuantity) : '');
+      setConfirmDelete(false);
+      setSubmitting(false);
+      setError('');
+    }
+  }
 
   async function handleSave() {
     const priceValue = parseBRL(price);

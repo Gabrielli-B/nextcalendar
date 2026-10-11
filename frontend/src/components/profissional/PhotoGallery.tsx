@@ -207,7 +207,7 @@ export function PhotoGallery({
 
               {fullscreenPhoto.caption ? (
                 <Text style={[styles.fsCaption, { fontFamily: fontRegular }]}>
-                  "{fullscreenPhoto.caption}"
+                  &quot;{fullscreenPhoto.caption}&quot;
                 </Text>
               ) : null}
             </View>

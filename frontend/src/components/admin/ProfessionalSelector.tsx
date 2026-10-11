@@ -69,7 +69,7 @@ export function ProfessionalSelector({
             Nenhum profissional cadastrado
           </Text>
           <Text style={[styles.feedbackText, { fontFamily: fontRegular }]}>
-            Toque em "Adicionar" para cadastrar o primeiro profissional da equipe.
+            Toque em &quot;Adicionar&quot; para cadastrar o primeiro profissional da equipe.
           </Text>
         </View>
       )}

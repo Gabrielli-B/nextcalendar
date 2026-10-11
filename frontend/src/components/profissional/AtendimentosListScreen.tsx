@@ -71,56 +71,106 @@ export function AtendimentosListScreen({ onBack }: AtendimentosListScreenProps) 
       .catch(() => {});
   }, [isManager, establishmentId]);
 
+  /**
+   * Requisição pura (sem `setState`), compartilhada entre o efeito de carga
+   * e os handlers de recarga/paginação.
+   */
+  const requestAttendances = useCallback(
+    (pageToLoad: number) => {
+      if (!isManager) {
+        // Professional view
+        return getProfessionalAttendances({
+          status: profTab,
+          page: pageToLoad,
+          size: 15,
+        });
+      }
+
+      // Manager view
+      const statusParam: AppointmentStatus | undefined =
+        managerStatusFilter === 'ALL' ? undefined : managerStatusFilter;
+
+      return getEstablishmentAttendances({
+        professionalId: selectedProfId || undefined,
+        status: statusParam,
+        page: pageToLoad,
+        size: 15,
+      });
+    },
+    [isManager, profTab, managerStatusFilter, selectedProfId]
+  );
+
+  /**
+   * Recarga com feedback de loading — disparada por event handlers.
+   * (O efeito de carga abaixo não pode usar esta função: o `setState` de
+   * loading seria síncrono dentro do efeito.)
+   */
   const loadAttendances = useCallback(
-    async (pageToLoad: number, append = false) => {
+    (pageToLoad: number, append = false) => {
       if (pageToLoad === 0 && !append) {
         setLoading(true);
       } else {
         setLoadingMore(true);
       }
 
-      try {
-        if (!isManager) {
-          // Professional view
-          const statusParam = profTab;
-          const res = await getProfessionalAttendances({
-            status: statusParam,
-            page: pageToLoad,
-            size: 15,
-          });
-
+      return requestAttendances(pageToLoad)
+        .then((res) => {
           setTotalPages(res.totalPages);
           setAttendances((prev) => (append ? [...prev, ...res.content] : res.content));
-        } else {
-          // Manager view
-          const statusParam: AppointmentStatus | undefined =
-            managerStatusFilter === 'ALL' ? undefined : managerStatusFilter;
+        })
+        .catch(() => {
+          if (!append) setAttendances([]);
+        })
+        .finally(() => {
+          setLoading(false);
+          setRefreshing(false);
+          setLoadingMore(false);
+        });
+    },
+    [requestAttendances]
+  );
 
-          const res = await getEstablishmentAttendances({
-            professionalId: selectedProfId || undefined,
-            status: statusParam,
-            page: pageToLoad,
-            size: 15,
-          });
+  /**
+   * Reseta a paginação quando os filtros mudam (a identidade da carga muda).
+   * Padrão "ajustar estado no render" (react.dev) em vez de efeito com
+   * `setState` síncrono.
+   */
+  const [prevRequest, setPrevRequest] = useState(() => requestAttendances);
+  if (prevRequest !== requestAttendances) {
+    setPrevRequest(requestAttendances);
+    setPage(0);
+  }
 
-          setTotalPages(res.totalPages);
-          setAttendances((prev) => (append ? [...prev, ...res.content] : res.content));
-        }
-      } catch {
-        if (!append) setAttendances([]);
-      } finally {
+  /**
+   * Carga da lista.
+   *
+   * Toda a cadeia vive no efeito, com `setState` apenas em callbacks de
+   * promise e guarda `active` (`react-hooks/set-state-in-effect`).
+   */
+  useEffect(() => {
+    let active = true;
+
+    requestAttendances(0)
+      .then((res) => {
+        if (!active) return;
+        setTotalPages(res.totalPages);
+        setAttendances(res.content);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAttendances([]);
+      })
+      .finally(() => {
+        if (!active) return;
         setLoading(false);
         setRefreshing(false);
         setLoadingMore(false);
-      }
-    },
-    [isManager, profTab, managerStatusFilter, selectedProfId]
-  );
+      });
 
-  useEffect(() => {
-    setPage(0);
-    loadAttendances(0, false);
-  }, [loadAttendances]);
+    return () => {
+      active = false;
+    };
+  }, [requestAttendances]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);

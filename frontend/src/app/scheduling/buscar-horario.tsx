@@ -174,22 +174,24 @@ export default function BuscarHorarioScreen() {
       params.serviceId ?? ''
     );
 
-  useEffect(() => {
+  /**
+   * Sincroniza as seleções com os params da rota quando eles mudam.
+   * Padrão "ajustar estado no render" (react.dev): evita o efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   */
+  const [prevRouteParams, setPrevRouteParams] = useState(params);
+
+  if (prevRouteParams !== params) {
+    setPrevRouteParams(params);
+
     if (params.professionalId) {
-      setSelectedProfId(
-        params.professionalId
-      );
+      setSelectedProfId(params.professionalId);
     }
 
     if (params.serviceId) {
-      setSelectedServiceId(
-        params.serviceId
-      );
+      setSelectedServiceId(params.serviceId);
     }
-  }, [
-    params.professionalId,
-    params.serviceId,
-  ]);
+  }
 
   const today = new Date();
 
