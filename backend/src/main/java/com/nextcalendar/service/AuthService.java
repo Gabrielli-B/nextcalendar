@@ -13,6 +13,7 @@ import com.nextcalendar.exception.DuplicateResourceException;
 import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.repository.UserRepository;
 import com.nextcalendar.repository.EstablishmentRepository;
+import com.nextcalendar.validation.CnpjValidator;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,6 +78,9 @@ public class AuthService {
 		if (dto.role() == UserRole.MANAGER) {
 			if (dto.cnpj() == null || dto.cnpj().isBlank()) {
 				throw new BusinessException("CNPJ é obrigatório para cadastro de estabelecimento");
+			}
+			if (!CnpjValidator.isValid(dto.cnpj())) {
+				throw new BusinessException("CNPJ inválido — confira os 14 dígitos: " + dto.cnpj());
 			}
 			if (dto.cep() == null || dto.street() == null || dto.number() == null || dto.neighborhood() == null
 					|| dto.city() == null || dto.state() == null) {

@@ -15,6 +15,7 @@ import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.mapper.EstablishmentMapper;
 import com.nextcalendar.repository.EstablishmentRepository;
 import com.nextcalendar.repository.ProfileRepository;
+import com.nextcalendar.validation.CnpjValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -219,13 +220,18 @@ public class EstablishmentService {
 			.orElseThrow(() -> new EntityNotFoundException("Estabelecimento", id));
 	}
 
-	/** Normaliza o CNPJ removendo pontuação e valida o formato (14 dígitos). */
+	/**
+	 * Normaliza o CNPJ removendo pontuação e valida formato (14 dígitos) e verificadores.
+	 */
 	private String normalizarCnpj(String cnpj) {
 		if (cnpj == null)
 			throw new BusinessException("CNPJ é obrigatório.");
 		String normalizado = cnpj.replaceAll("[^0-9]", "");
 		if (normalizado.length() != 14) {
 			throw new BusinessException("CNPJ inválido — deve conter 14 dígitos numéricos: " + cnpj);
+		}
+		if (!CnpjValidator.isValid(normalizado)) {
+			throw new BusinessException("CNPJ inválido — dígito verificador incorreto: " + cnpj);
 		}
 		return normalizado;
 	}
