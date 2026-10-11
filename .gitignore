@@ -65,6 +65,9 @@ frontend/.env.*
 *.ipr
 *.iws
 
+# Docker (override local de portas)
+docker-compose.override.yml
+
 # Sistema
 .DS_Store
 Thumbs.db
