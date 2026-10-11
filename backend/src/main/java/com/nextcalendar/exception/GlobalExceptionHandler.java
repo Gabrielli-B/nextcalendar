@@ -5,9 +5,12 @@ import jakarta.persistence.OptimisticLockException;
 import jakarta.persistence.PessimisticLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.exc.InvalidFormatException;
 
 import java.util.List;
 
@@ -29,6 +32,30 @@ public class GlobalExceptionHandler {
 			.map(fieldError -> new ValidationErrorResponseDTO(fieldError.getField(), fieldError.getDefaultMessage()))
 			.toList();
 		return ResponseEntity.status(HttpStatus.valueOf(422)).body(errors);
+	}
+
+	// UC06 — JSON malformado ou valor fora do domínio (ex.: enum) → 422 com o campo
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<?> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+		Throwable cause = ex.getMostSpecificCause();
+		String field = null;
+		if (cause instanceof JacksonException jacksonEx) {
+			List<JacksonException.Reference> path = jacksonEx.getPath();
+			for (int i = path.size() - 1; i >= 0; i--) {
+				String propertyName = path.get(i).getPropertyName();
+				if (propertyName != null && !propertyName.isBlank()) {
+					field = propertyName;
+					break;
+				}
+			}
+		}
+		if (field == null) {
+			return ResponseEntity.badRequest().body("Corpo da requisição mal formatado.");
+		}
+		String message = (cause instanceof InvalidFormatException invalid)
+				? "Valor \"" + invalid.getValue() + "\" inválido para este campo." : "Valor inválido para este campo.";
+		return ResponseEntity.status(HttpStatus.valueOf(422))
+			.body(List.of(new ValidationErrorResponseDTO(field, message)));
 	}
 
 	@ExceptionHandler(BusinessException.class)
