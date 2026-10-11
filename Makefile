@@ -34,7 +34,7 @@ endif
 
 .PHONY: help run dev \
         db-up db-down db-logs db-status \
-        backend-run backend-test backend-build backend-clean \
+        backend-run backend-test backend-e2e backend-build backend-clean \
         frontend-start frontend-android frontend-ios frontend-web \
         frontend-install frontend-lint frontend-clean frontend-reset \
         barbearia-db-up barbearia-db-down barbearia-api barbearia-bridge
@@ -59,6 +59,7 @@ help:
 	  "  $(C_CYAN)Backend (Spring Boot)$(C_RESET)" \
 	  "  make backend-run          Roda a aplicação Spring Boot" \
 	  "  make backend-test         Executa os testes do backend" \
+	  "  make backend-e2e          Roda a suíte E2E (backend precisa estar no ar)" \
 	  "  make backend-build        Compila e empacota o backend" \
 	  "  make backend-clean        Remove os artefatos de build" \
 	  "" \
@@ -117,6 +118,13 @@ backend-run:
 
 backend-test:
 	@cd $(BACKEND_DIR) && $(MVN) test
+
+# Suíte E2E (HURL) contra o backend JÁ RODANDO em http://localhost:8080.
+#   make backend-e2e                        # suíte inteira
+#   make backend-e2e FILES=11-orders.hurl   # só um arquivo (vários: FILES="a.hurl b.hurl")
+# Relatório HTML: backend/e2e/report/index.html
+backend-e2e:
+	@$(BACKEND_DIR)/e2e/run.sh $(addprefix $(BACKEND_DIR)/e2e/,$(FILES))
 
 backend-build:
 	@cd $(BACKEND_DIR) && $(MVN) package -DskipTests

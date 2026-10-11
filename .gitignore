@@ -19,6 +19,10 @@ backend/data/
 *.mv.db
 *.trace.db
 
+# Suíte E2E (HURL) — só base.env é versionado
+backend/e2e/vars/generated.env
+backend/e2e/report/
+
 # Frontend (Expo / React Native)
 frontend/node_modules/
 node_modules/
