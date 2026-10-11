@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name="clients")
+@Table(name = "clients")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,41 +21,44 @@ import java.util.UUID;
 
 public class ClientEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true)
-    private UserEntity user;
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", unique = true)
+	private UserEntity user;
 
-    @OneToOne(mappedBy = "client")
-    private TechnicalSheetEntity technicalSheet;
+	@OneToOne(mappedBy = "client")
+	private TechnicalSheetEntity technicalSheet;
 
-    private String name;
+	private String name;
 
-    @Column(nullable = false)
-    private String phone;
+	@Column(nullable = false)
+	private String phone;
 
-    private String email;
+	private String email;
 
-    private LocalDate dateOfBirth;
-    private String photoUrl;
-    private String notes;
-    private Boolean active;
+	private LocalDate dateOfBirth;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+	private String photoUrl;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+	private String notes;
 
-    public String getName() {
-        return (this.user != null) ? this.user.getName() : this.name;
-    }
+	private Boolean active;
 
-    public String getEmail() {
-        return (this.user != null) ? this.user.getEmail() : this.email;
-    }
+	@CreationTimestamp
+	private LocalDateTime createdAt;
+
+	@UpdateTimestamp
+	private LocalDateTime updatedAt;
+
+	public String getName() {
+		return (this.user != null) ? this.user.getName() : this.name;
+	}
+
+	public String getEmail() {
+		return (this.user != null) ? this.user.getEmail() : this.email;
+	}
 
 }

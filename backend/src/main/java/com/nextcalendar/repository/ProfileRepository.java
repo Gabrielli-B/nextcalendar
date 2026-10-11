@@ -8,7 +8,8 @@ import java.util.UUID;
 
 public interface ProfileRepository extends JpaRepository<ProfileEntity, UUID> {
 
-    List<ProfileEntity> findByEstablishmentId(UUID establishmentId);
+	List<ProfileEntity> findByEstablishmentId(UUID establishmentId);
 
-    boolean existsByOwnerIdAndEstablishmentId(UUID ownerId, UUID establishmentId);
+	boolean existsByOwnerIdAndEstablishmentId(UUID ownerId, UUID establishmentId);
+
 }

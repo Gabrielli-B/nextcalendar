@@ -34,182 +34,192 @@ import java.util.UUID;
 @Service
 public class OrderService {
 
-    private final OrderRepository orderRepository;
-    private final AppointmentRepository appointmentRepository;
-    private final EstablishmentRepository establishmentRepository;
-    private final ServiceRepository serviceRepository;
-    private final ProductRepository productRepository;
-    private final ProfessionalRepository professionalRepository;
-    private final OrderMapper orderMapper;
+	private final OrderRepository orderRepository;
 
-    public OrderService(OrderRepository orderRepository,
-                        AppointmentRepository appointmentRepository,
-                        EstablishmentRepository establishmentRepository,
-                        ServiceRepository serviceRepository,
-                        ProductRepository productRepository,
-                        ProfessionalRepository professionalRepository,
-                        OrderMapper orderMapper) {
-        this.orderRepository = orderRepository;
-        this.appointmentRepository = appointmentRepository;
-        this.establishmentRepository = establishmentRepository;
-        this.serviceRepository = serviceRepository;
-        this.productRepository = productRepository;
-        this.professionalRepository = professionalRepository;
-        this.orderMapper = orderMapper;
-    }
+	private final AppointmentRepository appointmentRepository;
 
-    private void validateOrderAccess(AppointmentEntity appointment) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
-                        .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Perfil de profissional não localizado."));
-                if (!appointment.getProfessional().getId().equals(myProf.getId())) {
-                    throw new org.springframework.security.access.AccessDeniedException("Profissionais só podem acessar comandas dos seus próprios agendamentos.");
-                }
-            }
-        });
-    }
+	private final EstablishmentRepository establishmentRepository;
 
-    private EstablishmentEntity findEstablishment(UUID establishmentId) {
-        return establishmentRepository.findById(establishmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
-    }
+	private final ServiceRepository serviceRepository;
 
-    private AppointmentEntity findAppointment(UUID establishmentId, UUID appointmentId) {
-        AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Agendamento", appointmentId));
+	private final ProductRepository productRepository;
 
-        if (!appointment.getEstablishment().getId().equals(establishmentId)) {
-            throw new EntityNotFoundException("Agendamento", appointmentId);
-        }
-        return appointment;
-    }
+	private final ProfessionalRepository professionalRepository;
 
-    private OrderEntity findOrder(UUID establishmentId, UUID orderId) {
-        OrderEntity order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new EntityNotFoundException("Comanda", orderId));
+	private final OrderMapper orderMapper;
 
-        if (!order.getEstablishment().getId().equals(establishmentId)) {
-            throw new EntityNotFoundException("Comanda", orderId);
-        }
-        validateOrderAccess(order.getAppointment());
-        return order;
-    }
+	public OrderService(OrderRepository orderRepository, AppointmentRepository appointmentRepository,
+			EstablishmentRepository establishmentRepository, ServiceRepository serviceRepository,
+			ProductRepository productRepository, ProfessionalRepository professionalRepository,
+			OrderMapper orderMapper) {
+		this.orderRepository = orderRepository;
+		this.appointmentRepository = appointmentRepository;
+		this.establishmentRepository = establishmentRepository;
+		this.serviceRepository = serviceRepository;
+		this.productRepository = productRepository;
+		this.professionalRepository = professionalRepository;
+		this.orderMapper = orderMapper;
+	}
 
-    private void validateOpen(OrderEntity order) {
-        if (order.getStatus() != OrderStatus.OPEN) {
-            throw new BusinessException("Esta comanda já foi finalizada e não pode mais ser alterada.");
-        }
-    }
+	private void validateOrderAccess(AppointmentEntity appointment) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
+					.orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+							"Perfil de profissional não localizado."));
+				if (!appointment.getProfessional().getId().equals(myProf.getId())) {
+					throw new org.springframework.security.access.AccessDeniedException(
+							"Profissionais só podem acessar comandas dos seus próprios agendamentos.");
+				}
+			}
+		});
+	}
 
-    private BigDecimal calculateTotal(OrderEntity order) {
-        BigDecimal subtotal = order.getItems().stream()
-                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+	private EstablishmentEntity findEstablishment(UUID establishmentId) {
+		return establishmentRepository.findById(establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
+	}
 
-        BigDecimal total = subtotal.subtract(order.getDiscountAmount());
-        return total.max(BigDecimal.ZERO);
-    }
+	private AppointmentEntity findAppointment(UUID establishmentId, UUID appointmentId) {
+		AppointmentEntity appointment = appointmentRepository.findById(appointmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Agendamento", appointmentId));
 
-    @Transactional
-    public OrderResponseDTO openOrder(UUID establishmentId, UUID appointmentId) {
-        AppointmentEntity appointment = findAppointment(establishmentId, appointmentId);
-        validateOrderAccess(appointment);
+		if (!appointment.getEstablishment().getId().equals(establishmentId)) {
+			throw new EntityNotFoundException("Agendamento", appointmentId);
+		}
+		return appointment;
+	}
 
-        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
-            throw new BusinessException("Não é possível abrir comanda para um agendamento cancelado.");
-        }
+	private OrderEntity findOrder(UUID establishmentId, UUID orderId) {
+		OrderEntity order = orderRepository.findById(orderId)
+			.orElseThrow(() -> new EntityNotFoundException("Comanda", orderId));
 
-        Optional<OrderEntity> existente = orderRepository.findByAppointmentId(appointmentId);
-        if (existente.isPresent()) {
-            return new OrderResponseDTO(existente.get());
-        }
+		if (!order.getEstablishment().getId().equals(establishmentId)) {
+			throw new EntityNotFoundException("Comanda", orderId);
+		}
+		validateOrderAccess(order.getAppointment());
+		return order;
+	}
 
-        OrderEntity order = orderMapper.toEntity(appointment);
+	private void validateOpen(OrderEntity order) {
+		if (order.getStatus() != OrderStatus.OPEN) {
+			throw new BusinessException("Esta comanda já foi finalizada e não pode mais ser alterada.");
+		}
+	}
 
-        OrderItemEntity itemInicial = orderMapper.fromService(order, appointment.getService(), 1);
-        order.getItems().add(itemInicial);
+	private BigDecimal calculateTotal(OrderEntity order) {
+		BigDecimal subtotal = order.getItems()
+			.stream()
+			.map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        OrderEntity savedOrder = orderRepository.save(order);
-        return new OrderResponseDTO(savedOrder);
-    }
+		BigDecimal total = subtotal.subtract(order.getDiscountAmount());
+		return total.max(BigDecimal.ZERO);
+	}
 
-    @Transactional(readOnly = true)
-    public OrderResponseDTO findById(UUID establishmentId, UUID orderId) {
-        return new OrderResponseDTO(findOrder(establishmentId, orderId));
-    }
+	@Transactional
+	public OrderResponseDTO openOrder(UUID establishmentId, UUID appointmentId) {
+		AppointmentEntity appointment = findAppointment(establishmentId, appointmentId);
+		validateOrderAccess(appointment);
 
-    @Transactional
-    public OrderResponseDTO addItem(UUID establishmentId, UUID orderId, OrderItemAddDTO dto) {
-        OrderEntity order = findOrder(establishmentId, orderId);
-        validateOpen(order);
+		if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+			throw new BusinessException("Não é possível abrir comanda para um agendamento cancelado.");
+		}
 
-        OrderItemEntity item;
+		Optional<OrderEntity> existente = orderRepository.findByAppointmentId(appointmentId);
+		if (existente.isPresent()) {
+			return new OrderResponseDTO(existente.get());
+		}
 
-        if (dto.itemType() == OrderItemType.SERVICE) {
-            ServiceEntity service = serviceRepository.findByIdAndEstablishmentAndActiveTrue(dto.itemId(), order.getEstablishment())
-                    .orElseThrow(() -> new EntityNotFoundException("Serviço", dto.itemId()));
-            item = orderMapper.fromService(order, service, dto.quantity());
-        } else {
-            ProductEntity product = productRepository.findByIdAndEstablishmentAndActiveTrue(dto.itemId(), order.getEstablishment())
-                    .orElseThrow(() -> new EntityNotFoundException("Produto", dto.itemId()));
-            item = orderMapper.fromProduct(order, product, dto.quantity());
-        }
+		OrderEntity order = orderMapper.toEntity(appointment);
 
-        order.getItems().add(item);
+		OrderItemEntity itemInicial = orderMapper.fromService(order, appointment.getService(), 1);
+		order.getItems().add(itemInicial);
 
-        OrderEntity savedOrder = orderRepository.save(order);
-        return new OrderResponseDTO(savedOrder);
-    }
+		OrderEntity savedOrder = orderRepository.save(order);
+		return new OrderResponseDTO(savedOrder);
+	}
 
-    @Transactional
-    public OrderResponseDTO removeItem(UUID establishmentId, UUID orderId, UUID itemId) {
-        OrderEntity order = findOrder(establishmentId, orderId);
-        validateOpen(order);
+	@Transactional(readOnly = true)
+	public OrderResponseDTO findById(UUID establishmentId, UUID orderId) {
+		return new OrderResponseDTO(findOrder(establishmentId, orderId));
+	}
 
-        boolean removido = order.getItems().removeIf(item -> item.getId().equals(itemId));
-        if (!removido) {
-            throw new EntityNotFoundException("Item da comanda", itemId);
-        }
+	@Transactional
+	public OrderResponseDTO addItem(UUID establishmentId, UUID orderId, OrderItemAddDTO dto) {
+		OrderEntity order = findOrder(establishmentId, orderId);
+		validateOpen(order);
 
-        OrderEntity savedOrder = orderRepository.save(order);
-        return new OrderResponseDTO(savedOrder);
-    }
+		OrderItemEntity item;
 
-    @Transactional
-    public OrderResponseDTO update(UUID establishmentId, UUID orderId, OrderUpdateDTO dto) {
-        OrderEntity order = findOrder(establishmentId, orderId);
-        validateOpen(order);
+		if (dto.itemType() == OrderItemType.SERVICE) {
+			ServiceEntity service = serviceRepository
+				.findByIdAndEstablishmentAndActiveTrue(dto.itemId(), order.getEstablishment())
+				.orElseThrow(() -> new EntityNotFoundException("Serviço", dto.itemId()));
+			item = orderMapper.fromService(order, service, dto.quantity());
+		}
+		else {
+			ProductEntity product = productRepository
+				.findByIdAndEstablishmentAndActiveTrue(dto.itemId(), order.getEstablishment())
+				.orElseThrow(() -> new EntityNotFoundException("Produto", dto.itemId()));
+			item = orderMapper.fromProduct(order, product, dto.quantity());
+		}
 
-        Optional.ofNullable(dto.discountAmount()).ifPresent(order::setDiscountAmount);
-        Optional.ofNullable(dto.paymentMethod()).ifPresent(order::setPaymentMethod);
+		order.getItems().add(item);
 
-        OrderEntity savedOrder = orderRepository.save(order);
-        return new OrderResponseDTO(savedOrder);
-    }
+		OrderEntity savedOrder = orderRepository.save(order);
+		return new OrderResponseDTO(savedOrder);
+	}
 
-    @Transactional
-    public OrderResponseDTO finish(UUID establishmentId, UUID orderId) {
-        OrderEntity order = findOrder(establishmentId, orderId);
-        validateOpen(order);
+	@Transactional
+	public OrderResponseDTO removeItem(UUID establishmentId, UUID orderId, UUID itemId) {
+		OrderEntity order = findOrder(establishmentId, orderId);
+		validateOpen(order);
 
-        if (order.getItems().isEmpty()) {
-            throw new BusinessException("A comanda precisa ter ao menos um item para ser finalizada.");
-        }
+		boolean removido = order.getItems().removeIf(item -> item.getId().equals(itemId));
+		if (!removido) {
+			throw new EntityNotFoundException("Item da comanda", itemId);
+		}
 
-        if (order.getPaymentMethod() == null) {
-            throw new BusinessException("Selecione a forma de pagamento antes de finalizar a comanda.");
-        }
+		OrderEntity savedOrder = orderRepository.save(order);
+		return new OrderResponseDTO(savedOrder);
+	}
 
-        order.setClosedTotalAmount(calculateTotal(order));
-        order.setStatus(OrderStatus.CLOSED);
-        order.setClosedAt(LocalDateTime.now());
+	@Transactional
+	public OrderResponseDTO update(UUID establishmentId, UUID orderId, OrderUpdateDTO dto) {
+		OrderEntity order = findOrder(establishmentId, orderId);
+		validateOpen(order);
 
-        AppointmentEntity appointment = order.getAppointment();
-        appointment.setStatus(AppointmentStatus.DONE);
-        appointmentRepository.save(appointment);
+		Optional.ofNullable(dto.discountAmount()).ifPresent(order::setDiscountAmount);
+		Optional.ofNullable(dto.paymentMethod()).ifPresent(order::setPaymentMethod);
 
-        OrderEntity savedOrder = orderRepository.save(order);
-        return new OrderResponseDTO(savedOrder);
-    }
+		OrderEntity savedOrder = orderRepository.save(order);
+		return new OrderResponseDTO(savedOrder);
+	}
+
+	@Transactional
+	public OrderResponseDTO finish(UUID establishmentId, UUID orderId) {
+		OrderEntity order = findOrder(establishmentId, orderId);
+		validateOpen(order);
+
+		if (order.getItems().isEmpty()) {
+			throw new BusinessException("A comanda precisa ter ao menos um item para ser finalizada.");
+		}
+
+		if (order.getPaymentMethod() == null) {
+			throw new BusinessException("Selecione a forma de pagamento antes de finalizar a comanda.");
+		}
+
+		order.setClosedTotalAmount(calculateTotal(order));
+		order.setStatus(OrderStatus.CLOSED);
+		order.setClosedAt(LocalDateTime.now());
+
+		AppointmentEntity appointment = order.getAppointment();
+		appointment.setStatus(AppointmentStatus.DONE);
+		appointmentRepository.save(appointment);
+
+		OrderEntity savedOrder = orderRepository.save(order);
+		return new OrderResponseDTO(savedOrder);
+	}
+
 }

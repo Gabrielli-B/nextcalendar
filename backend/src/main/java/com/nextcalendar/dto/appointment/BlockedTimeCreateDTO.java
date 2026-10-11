@@ -6,11 +6,9 @@ import java.time.LocalDateTime;
 
 public record BlockedTimeCreateDTO(
 
-        @NotNull(message = "O horário de início é obrigatório")
-        LocalDateTime startDateTime,
+		@NotNull(message = "O horário de início é obrigatório") LocalDateTime startDateTime,
 
-        @NotNull(message = "O horário de término é obrigatório")
-        LocalDateTime endDateTime,
+		@NotNull(message = "O horário de término é obrigatório") LocalDateTime endDateTime,
 
-        String reason
-) { }
+		String reason) {
+}

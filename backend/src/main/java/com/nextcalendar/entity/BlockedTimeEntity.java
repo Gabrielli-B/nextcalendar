@@ -18,23 +18,24 @@ import java.util.UUID;
 @AllArgsConstructor
 public class BlockedTimeEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professional_id", nullable = false)
-    private ProfessionalEntity professional;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "professional_id", nullable = false)
+	private ProfessionalEntity professional;
 
-    @Column(nullable = false)
-    private LocalDateTime startDateTime;
+	@Column(nullable = false)
+	private LocalDateTime startDateTime;
 
-    @Column(nullable = false)
-    private LocalDateTime endDateTime;
+	@Column(nullable = false)
+	private LocalDateTime endDateTime;
 
-    private String reason;
+	private String reason;
 
-    @CreationTimestamp
-    @Column(nullable = false,updatable = false)
-    private LocalDateTime createdDate;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdDate;
+
 }

@@ -11,38 +11,28 @@ import java.util.UUID;
  */
 public record EstablishmentCreateDTO(
 
-        @NotNull(message = "ownerId é obrigatório")
-        UUID ownerId,
+		@NotNull(message = "ownerId é obrigatório") UUID ownerId,
 
-        @NotBlank(message = "Razão social é obrigatória")
-        String legalName,
+		@NotBlank(message = "Razão social é obrigatória") String legalName,
 
-        @NotBlank(message = "Nome fantasia é obrigatório")
-        String name,
+		@NotBlank(message = "Nome fantasia é obrigatório") String name,
 
-        @NotBlank(message = "CNPJ é obrigatório")
-        String cnpj,
+		@NotBlank(message = "CNPJ é obrigatório") String cnpj,
 
-        @NotBlank(message = "Telefone é obrigatório")
-        String phone,
+		@NotBlank(message = "Telefone é obrigatório") String phone,
 
-        String whatsapp,
+		String whatsapp,
 
-        @NotBlank(message = "E-mail é obrigatório")
-        @Email(message = "E-mail inválido")
-        String email,
+		@NotBlank(message = "E-mail é obrigatório") @Email(message = "E-mail inválido") String email,
 
-        String businessType,
+		String businessType,
 
-        @NotNull(message = "Endereço é obrigatório")
-        @Valid
-        AddressCreateDTO address,
+		@NotNull(message = "Endereço é obrigatório") @Valid AddressCreateDTO address,
 
-        /**
-         * UC01 — Pré-condição: termos devem ser aceitos para persistir.
-         * @AssertTrue garante que o valor seja true (não apenas não-nulo).
-         */
-        @NotNull(message = "É necessário aceitar os termos de uso")
-        @AssertTrue(message = "Os termos de uso devem ser aceitos para criar o estabelecimento")
-        Boolean termsAccepted
-) {}
+		/**
+		 * UC01 — Pré-condição: termos devem ser aceitos para persistir.
+		 * @AssertTrue garante que o valor seja true (não apenas não-nulo).
+		 */
+		@NotNull(message = "É necessário aceitar os termos de uso") @AssertTrue(
+				message = "Os termos de uso devem ser aceitos para criar o estabelecimento") Boolean termsAccepted) {
+}

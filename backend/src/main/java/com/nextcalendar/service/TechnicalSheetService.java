@@ -29,117 +29,120 @@ import java.util.UUID;
 @Service
 public class TechnicalSheetService {
 
-    private final TechnicalSheetRepository technicalSheetRepository;
-    private final ClientRepository clientRepository;
-    private final AppointmentRepository appointmentRepository;
-    private final TechnicalSheetMapper technicalSheetMapper;
-    private final ProfessionalRepository professionalRepository;
+	private final TechnicalSheetRepository technicalSheetRepository;
 
-    public TechnicalSheetService(TechnicalSheetRepository technicalSheetRepository,
-                                 ClientRepository clientRepository,
-                                 AppointmentRepository appointmentRepository,
-                                 TechnicalSheetMapper technicalSheetMapper,
-                                 ProfessionalRepository professionalRepository) {
-        this.technicalSheetRepository = technicalSheetRepository;
-        this.clientRepository = clientRepository;
-        this.appointmentRepository = appointmentRepository;
-        this.technicalSheetMapper = technicalSheetMapper;
-        this.professionalRepository = professionalRepository;
-    }
+	private final ClientRepository clientRepository;
 
-    private ClientEntity findClient(UUID clientId) {
-        return clientRepository.findById(clientId)
-                .orElseThrow(() -> new EntityNotFoundException("Cliente", clientId));
-    }
+	private final AppointmentRepository appointmentRepository;
 
+	private final TechnicalSheetMapper technicalSheetMapper;
 
-    private TechnicalSheetEntity findOrCreateSheet(UUID clientId) {
-        ClientEntity client = findClient(clientId);
+	private final ProfessionalRepository professionalRepository;
 
-        return technicalSheetRepository.findByClientId(clientId)
-                .orElseGet(() -> technicalSheetRepository.save(technicalSheetMapper.toEntity(client)));
-    }
+	public TechnicalSheetService(TechnicalSheetRepository technicalSheetRepository, ClientRepository clientRepository,
+			AppointmentRepository appointmentRepository, TechnicalSheetMapper technicalSheetMapper,
+			ProfessionalRepository professionalRepository) {
+		this.technicalSheetRepository = technicalSheetRepository;
+		this.clientRepository = clientRepository;
+		this.appointmentRepository = appointmentRepository;
+		this.technicalSheetMapper = technicalSheetMapper;
+		this.professionalRepository = professionalRepository;
+	}
 
-    @Transactional
-    public TechnicalSheetResponseDTO findByClient(UUID clientId) {
-        TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
-        TechnicalSheetResponseDTO dto = new TechnicalSheetResponseDTO(sheet);
+	private ClientEntity findClient(UUID clientId) {
+		return clientRepository.findById(clientId).orElseThrow(() -> new EntityNotFoundException("Cliente", clientId));
+	}
 
-        Optional<UserEntity> userOpt = com.nextcalendar.config.SecurityUtils.getAuthenticatedUser();
-        if (userOpt.isPresent() && userOpt.get().getRole() == UserRole.PROFESSIONAL) {
-            UUID profId = professionalRepository.findByUserId(userOpt.get().getId())
-                    .map(ProfessionalEntity::getId).orElse(null);
-            List<com.nextcalendar.dto.technicalsheet.TechnicalSheetEntryResponseDTO> filteredEntries = dto.entries().stream()
-                    .filter(e -> e.professionalId() != null && e.professionalId().equals(profId))
-                    .toList();
-            return new TechnicalSheetResponseDTO(
-                    dto.id(), dto.clientId(), dto.clientName(), dto.observations(),
-                    filteredEntries, dto.createdAt(), dto.updatedAt()
-            );
-        }
-        return dto;
-    }
+	private TechnicalSheetEntity findOrCreateSheet(UUID clientId) {
+		ClientEntity client = findClient(clientId);
 
-    @Transactional
-    public TechnicalSheetResponseDTO updateObservations(UUID clientId, TechnicalSheetUpdateDTO dto) {
-        TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
-        sheet.setObservations(dto.observations());
+		return technicalSheetRepository.findByClientId(clientId)
+			.orElseGet(() -> technicalSheetRepository.save(technicalSheetMapper.toEntity(client)));
+	}
 
-        TechnicalSheetEntity savedSheet = technicalSheetRepository.save(sheet);
-        return findByClient(clientId);
-    }
+	@Transactional
+	public TechnicalSheetResponseDTO findByClient(UUID clientId) {
+		TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
+		TechnicalSheetResponseDTO dto = new TechnicalSheetResponseDTO(sheet);
 
-    @Transactional
-    public TechnicalSheetResponseDTO addEntry(UUID clientId, TechnicalSheetEntryCreateDTO dto) {
-        TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
+		Optional<UserEntity> userOpt = com.nextcalendar.config.SecurityUtils.getAuthenticatedUser();
+		if (userOpt.isPresent() && userOpt.get().getRole() == UserRole.PROFESSIONAL) {
+			UUID profId = professionalRepository.findByUserId(userOpt.get().getId())
+				.map(ProfessionalEntity::getId)
+				.orElse(null);
+			List<com.nextcalendar.dto.technicalsheet.TechnicalSheetEntryResponseDTO> filteredEntries = dto.entries()
+				.stream()
+				.filter(e -> e.professionalId() != null && e.professionalId().equals(profId))
+				.toList();
+			return new TechnicalSheetResponseDTO(dto.id(), dto.clientId(), dto.clientName(), dto.observations(),
+					filteredEntries, dto.createdAt(), dto.updatedAt());
+		}
+		return dto;
+	}
 
-        AppointmentEntity appointment = appointmentRepository.findById(dto.appointmentId())
-                .orElseThrow(() -> new EntityNotFoundException("Agendamento", dto.appointmentId()));
+	@Transactional
+	public TechnicalSheetResponseDTO updateObservations(UUID clientId, TechnicalSheetUpdateDTO dto) {
+		TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
+		sheet.setObservations(dto.observations());
 
-        if (appointment.getClient() == null || !appointment.getClient().getId().equals(clientId)) {
-            throw new BusinessException("Esse agendamento não pertence a este cliente.");
-        }
+		TechnicalSheetEntity savedSheet = technicalSheetRepository.save(sheet);
+		return findByClient(clientId);
+	}
 
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == UserRole.PROFESSIONAL) {
-                ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
-                        .orElseThrow(() -> new AccessDeniedException("Perfil de profissional não localizado."));
-                if (!appointment.getProfessional().getId().equals(myProf.getId())) {
-                    throw new AccessDeniedException("Profissionais só podem registrar atendimentos para seus próprios agendamentos.");
-                }
-            }
-        });
+	@Transactional
+	public TechnicalSheetResponseDTO addEntry(UUID clientId, TechnicalSheetEntryCreateDTO dto) {
+		TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
 
-        TechnicalSheetEntryEntity entry = technicalSheetMapper.toEntryEntity(
-                sheet, appointment, dto.notes(), dto.photoUrls()
-        );
-        sheet.getEntries().add(entry);
+		AppointmentEntity appointment = appointmentRepository.findById(dto.appointmentId())
+			.orElseThrow(() -> new EntityNotFoundException("Agendamento", dto.appointmentId()));
 
-        technicalSheetRepository.save(sheet);
-        return findByClient(clientId);
-    }
+		if (appointment.getClient() == null || !appointment.getClient().getId().equals(clientId)) {
+			throw new BusinessException("Esse agendamento não pertence a este cliente.");
+		}
 
-    @Transactional
-    public TechnicalSheetResponseDTO removeEntry(UUID clientId, UUID entryId) {
-        TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == UserRole.PROFESSIONAL) {
+				ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
+					.orElseThrow(() -> new AccessDeniedException("Perfil de profissional não localizado."));
+				if (!appointment.getProfessional().getId().equals(myProf.getId())) {
+					throw new AccessDeniedException(
+							"Profissionais só podem registrar atendimentos para seus próprios agendamentos.");
+				}
+			}
+		});
 
-        TechnicalSheetEntryEntity targetEntry = sheet.getEntries().stream()
-                .filter(entry -> entry.getId().equals(entryId))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException("Registro da ficha técnica", entryId));
+		TechnicalSheetEntryEntity entry = technicalSheetMapper.toEntryEntity(sheet, appointment, dto.notes(),
+				dto.photoUrls());
+		sheet.getEntries().add(entry);
 
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == UserRole.PROFESSIONAL) {
-                ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
-                        .orElseThrow(() -> new AccessDeniedException("Perfil de profissional não localizado."));
-                if (!targetEntry.getProfessional().getId().equals(myProf.getId())) {
-                    throw new AccessDeniedException("Profissionais só podem remover registros dos seus próprios atendimentos.");
-                }
-            }
-        });
+		technicalSheetRepository.save(sheet);
+		return findByClient(clientId);
+	}
 
-        sheet.getEntries().remove(targetEntry);
-        technicalSheetRepository.save(sheet);
-        return findByClient(clientId);
-    }
+	@Transactional
+	public TechnicalSheetResponseDTO removeEntry(UUID clientId, UUID entryId) {
+		TechnicalSheetEntity sheet = findOrCreateSheet(clientId);
+
+		TechnicalSheetEntryEntity targetEntry = sheet.getEntries()
+			.stream()
+			.filter(entry -> entry.getId().equals(entryId))
+			.findFirst()
+			.orElseThrow(() -> new EntityNotFoundException("Registro da ficha técnica", entryId));
+
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == UserRole.PROFESSIONAL) {
+				ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
+					.orElseThrow(() -> new AccessDeniedException("Perfil de profissional não localizado."));
+				if (!targetEntry.getProfessional().getId().equals(myProf.getId())) {
+					throw new AccessDeniedException(
+							"Profissionais só podem remover registros dos seus próprios atendimentos.");
+				}
+			}
+		});
+
+		sheet.getEntries().remove(targetEntry);
+		technicalSheetRepository.save(sheet);
+		return findByClient(clientId);
+	}
+
 }

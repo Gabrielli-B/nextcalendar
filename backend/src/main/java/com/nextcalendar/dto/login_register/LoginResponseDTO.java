@@ -7,20 +7,10 @@ import java.util.UUID;
 /**
  * Resposta de login — formato exato que o frontend (authServices.ts) espera.
  *
- * {
- *   "token": "eyJ...",
- *   "user": { "id": "uuid", "name": "Pedro", "email": "pedro@email.com" }
- * }
+ * { "token": "eyJ...", "user": { "id": "uuid", "name": "Pedro", "email":
+ * "pedro@email.com" } }
  */
-public record LoginResponseDTO(
-        String token,
-        UserInfoDTO user
-) {
-    public record UserInfoDTO(
-            UUID id,
-            String name,
-            String email,
-            UserRole role,
-            boolean mustChangePassword
-    ) {}
+public record LoginResponseDTO(String token, UserInfoDTO user) {
+	public record UserInfoDTO(UUID id, String name, String email, UserRole role, boolean mustChangePassword) {
+	}
 }

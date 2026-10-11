@@ -1,6 +1,5 @@
 package com.nextcalendar.entity;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,34 +19,36 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "establishment_id", nullable = false)
-    private EstablishmentEntity establishment;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+	@ManyToOne
+	@JoinColumn(name = "establishment_id", nullable = false)
+	private EstablishmentEntity establishment;
 
-    @Column(nullable = false)
-    private String category;
+	@Column(nullable = false)
+	private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+	@Column(nullable = false)
+	private String category;
 
-    @Column(nullable = false)
-    private Integer stockQuantity;
+	@Column(nullable = false, precision = 10, scale = 2)
+	private BigDecimal price;
 
-    @Column(nullable = false)
-    private Boolean active;
+	@Column(nullable = false)
+	private Integer stockQuantity;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@Column(nullable = false)
+	private Boolean active;
 
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
+	@UpdateTimestamp
+	@Column(nullable = false)
+	private LocalDateTime updatedAt;
+
 }

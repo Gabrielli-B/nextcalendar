@@ -19,106 +19,111 @@ import java.util.UUID;
 
 @Service
 public class ClientService {
-    private final ClientRepository clientRepository;
 
-    private final ClientMapper clientMapper;
+	private final ClientRepository clientRepository;
 
-    public ClientService(ClientRepository clientRepository, ClientMapper clientMapper) {
-        this.clientRepository=clientRepository;
-        this.clientMapper=clientMapper;
-    }
+	private final ClientMapper clientMapper;
 
-    @Transactional
-    public ClientEntity createClientFromRegistration(UserEntity user, RegisterRequestDTO dto) {
+	public ClientService(ClientRepository clientRepository, ClientMapper clientMapper) {
+		this.clientRepository = clientRepository;
+		this.clientMapper = clientMapper;
+	}
 
-        if (clientRepository.existsByEmail(user.getEmail())) {
-            throw new BusinessException("Email '" + user.getEmail() + "' já está cadastrado.");
-        }
+	@Transactional
+	public ClientEntity createClientFromRegistration(UserEntity user, RegisterRequestDTO dto) {
 
-        if (dto.phone() != null && !dto.phone().isBlank() && clientRepository.existsByPhone(dto.phone())) {
-            throw new BusinessException("Este número de telefone já está sendo usado por outro usuário.");
-        }
+		if (clientRepository.existsByEmail(user.getEmail())) {
+			throw new BusinessException("Email '" + user.getEmail() + "' já está cadastrado.");
+		}
 
-        ClientEntity client = new ClientEntity();
+		if (dto.phone() != null && !dto.phone().isBlank() && clientRepository.existsByPhone(dto.phone())) {
+			throw new BusinessException("Este número de telefone já está sendo usado por outro usuário.");
+		}
 
-        client.setUser(user);
-        client.setName(user.getName());
-        client.setPhone(dto.phone());
-        client.setEmail(user.getEmail());
-        client.setDateOfBirth(dto.dateOfBirth());
-        client.setPhotoUrl(dto.photoUrl());
-        client.setNotes(dto.notes());
-        client.setActive(true);
+		ClientEntity client = new ClientEntity();
 
-        return clientRepository.save(client);
-    }
+		client.setUser(user);
+		client.setName(user.getName());
+		client.setPhone(dto.phone());
+		client.setEmail(user.getEmail());
+		client.setDateOfBirth(dto.dateOfBirth());
+		client.setPhotoUrl(dto.photoUrl());
+		client.setNotes(dto.notes());
+		client.setActive(true);
 
-    @Transactional
-    public ClientProfileResponseDTO createClient(ClientCreateDTO clientDto){
+		return clientRepository.save(client);
+	}
 
-        if (clientRepository.existsByEmail(clientDto.email())){
-            throw new BusinessException("o E-mail " + clientDto.email() + " já está cadastrado no sistema.");
-        }
-        ClientEntity client = clientMapper.toEntity(clientDto);
+	@Transactional
+	public ClientProfileResponseDTO createClient(ClientCreateDTO clientDto) {
 
-        ClientEntity savedClient = clientRepository.save(client);
+		if (clientRepository.existsByEmail(clientDto.email())) {
+			throw new BusinessException("o E-mail " + clientDto.email() + " já está cadastrado no sistema.");
+		}
+		ClientEntity client = clientMapper.toEntity(clientDto);
 
-        return new ClientProfileResponseDTO(savedClient);
-    }
+		ClientEntity savedClient = clientRepository.save(client);
 
-    @Transactional
-    public ClientProfileResponseDTO updateClient(UUID id, ClientUpdateDTO clientDto){
+		return new ClientProfileResponseDTO(savedClient);
+	}
 
-        ClientEntity client = clientRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Cliente", id));
+	@Transactional
+	public ClientProfileResponseDTO updateClient(UUID id, ClientUpdateDTO clientDto) {
 
-        String targetEmail = clientDto.email();
+		ClientEntity client = clientRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("Cliente", id));
 
-        if (targetEmail != null && !targetEmail.isBlank() && !targetEmail.equals(client.getEmail())) {
-            if (clientRepository.existsByEmailAndIdNot(targetEmail, id)) {
-                throw new BusinessException("O e-mail '" + targetEmail + "' já está sendo usado.");
-            }
-        }
+		String targetEmail = clientDto.email();
 
-        clientMapper.updateEntity(client, clientDto);
+		if (targetEmail != null && !targetEmail.isBlank() && !targetEmail.equals(client.getEmail())) {
+			if (clientRepository.existsByEmailAndIdNot(targetEmail, id)) {
+				throw new BusinessException("O e-mail '" + targetEmail + "' já está sendo usado.");
+			}
+		}
 
-        if (client.getUser() != null) {
-            if (clientDto.name() != null && !clientDto.name().isBlank()) {
-                client.getUser().setName(clientDto.name());
-            }
-            if (targetEmail != null && !targetEmail.isBlank()) {
-                client.getUser().setEmail(targetEmail);
-            }
-        }
+		clientMapper.updateEntity(client, clientDto);
 
-        ClientEntity savedClient = clientRepository.save(client);
+		if (client.getUser() != null) {
+			if (clientDto.name() != null && !clientDto.name().isBlank()) {
+				client.getUser().setName(clientDto.name());
+			}
+			if (targetEmail != null && !targetEmail.isBlank()) {
+				client.getUser().setEmail(targetEmail);
+			}
+		}
 
-        return new ClientProfileResponseDTO(savedClient);
-    }
+		ClientEntity savedClient = clientRepository.save(client);
 
-    @Transactional(readOnly = true)
-    public ClientDetailsResponseDTO findClientById(UUID id){
-        ClientEntity client = clientRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Cliente",id));
-        return new ClientDetailsResponseDTO(client);
-    }
+		return new ClientProfileResponseDTO(savedClient);
+	}
 
-    @Transactional(readOnly = true)
-    public ClientDetailsResponseDTO findByUserId(UUID userId) {
-        ClientEntity client = clientRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Cliente para o usuário", userId));
-        return new ClientDetailsResponseDTO(client);
-    }
+	@Transactional(readOnly = true)
+	public ClientDetailsResponseDTO findClientById(UUID id) {
+		ClientEntity client = clientRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("Cliente", id));
+		return new ClientDetailsResponseDTO(client);
+	}
 
-    @Transactional(readOnly = true)
-    public Page<ClientMinResponseDTO> findClientsByName(String name, Pageable pageable){
-       return clientRepository.findByNameContainingIgnoreCaseAndActiveTrue(name,pageable)
-                .map(ClientMinResponseDTO::new);
+	@Transactional(readOnly = true)
+	public ClientDetailsResponseDTO findByUserId(UUID userId) {
+		ClientEntity client = clientRepository.findByUserId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("Cliente para o usuário", userId));
+		return new ClientDetailsResponseDTO(client);
+	}
 
-    }
+	@Transactional(readOnly = true)
+	public Page<ClientMinResponseDTO> findClientsByName(String name, Pageable pageable) {
+		return clientRepository.findByNameContainingIgnoreCaseAndActiveTrue(name, pageable)
+			.map(ClientMinResponseDTO::new);
 
-    @Transactional
-    public void deleteClient(UUID id){
-        ClientEntity client = clientRepository.findById(id).orElseThrow(()->new EntityNotFoundException("Cliente",id));
-        client.setActive(false);
-        clientRepository.save(client);
-    }
+	}
+
+	@Transactional
+	public void deleteClient(UUID id) {
+		ClientEntity client = clientRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("Cliente", id));
+		client.setActive(false);
+		clientRepository.save(client);
+	}
+
 }

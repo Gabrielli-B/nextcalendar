@@ -14,30 +14,32 @@ import java.util.UUID;
 @Service
 public class PasswordService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+	private final UserRepository userRepository;
 
-    public PasswordService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+	private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public void changePassword(UUID userId, PasswordChangeDTO dto) {
+	public PasswordService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
 
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário", userId));
+	@Transactional
+	public void changePassword(UUID userId, PasswordChangeDTO dto) {
 
-        if (!passwordEncoder.matches(dto.currentPassword(), user.getPasswordHash())) {
-            throw new BusinessException("A senha atual informada está incorreta.");
-        }
+		UserEntity user = userRepository.findById(userId)
+			.orElseThrow(() -> new EntityNotFoundException("Usuário", userId));
 
-        if (passwordEncoder.matches(dto.newPassword(), user.getPasswordHash())) {
-            throw new BusinessException("A nova senha deve ser diferente da senha atual.");
-        }
+		if (!passwordEncoder.matches(dto.currentPassword(), user.getPasswordHash())) {
+			throw new BusinessException("A senha atual informada está incorreta.");
+		}
 
-        user.setPasswordHash(passwordEncoder.encode(dto.newPassword()));
-        user.setMustChangePassword(false);
-        userRepository.save(user);
-    }
+		if (passwordEncoder.matches(dto.newPassword(), user.getPasswordHash())) {
+			throw new BusinessException("A nova senha deve ser diferente da senha atual.");
+		}
+
+		user.setPasswordHash(passwordEncoder.encode(dto.newPassword()));
+		user.setMustChangePassword(false);
+		userRepository.save(user);
+	}
+
 }

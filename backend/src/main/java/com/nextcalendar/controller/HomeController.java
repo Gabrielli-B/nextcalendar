@@ -12,8 +12,9 @@ import java.io.IOException;
 @RestController
 public class HomeController {
 
-    @GetMapping({"/", "/api/v1", "/api/v1/"})
-    public void home(HttpServletResponse response) throws IOException {
-        response.sendRedirect("/swagger-ui/index.html");
-    }
+	@GetMapping({ "/", "/api/v1", "/api/v1/" })
+	public void home(HttpServletResponse response) throws IOException {
+		response.sendRedirect("/swagger-ui/index.html");
+	}
+
 }

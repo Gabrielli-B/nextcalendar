@@ -16,67 +16,68 @@ import java.util.UUID;
 @AllArgsConstructor
 public class EstablishmentEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    // Referência ao usuário dono (FK futura para UserEntity)
-    @Column(nullable = false)
-    private UUID ownerId;
+	// Referência ao usuário dono (FK futura para UserEntity)
+	@Column(nullable = false)
+	private UUID ownerId;
 
-    // --- Dados da empresa (UC01 / tela Empresa) ---
+	// --- Dados da empresa (UC01 / tela Empresa) ---
 
-    @Column(nullable = false)
-    private String legalName;       // Razão social
+	@Column(nullable = false)
+	private String legalName; // Razão social
 
-    @Column(nullable = false)
-    private String name;            // Nome fantasia
+	@Column(nullable = false)
+	private String name; // Nome fantasia
 
-    @Column(nullable = false, unique = true)
-    private String cnpj;            // 14 dígitos normalizados (sem pontuação)
+	@Column(nullable = false, unique = true)
+	private String cnpj; // 14 dígitos normalizados (sem pontuação)
 
-    @Column(nullable = false)
-    private String phone;           // Celular
+	@Column(nullable = false)
+	private String phone; // Celular
 
-    private String whatsapp;
+	private String whatsapp;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+	@Column(nullable = false, unique = true)
+	private String email;
 
-    private String businessType;    // Tipo de negócio (Barbearia, Salão, etc.)
+	private String businessType; // Tipo de negócio (Barbearia, Salão, etc.)
 
-    private String logoUrl;
+	private String logoUrl;
 
-    // --- Endereço (UC01 passo 4–8) ---
+	// --- Endereço (UC01 passo 4–8) ---
 
-    @Embedded
-    private AddressEmbeddable address;
+	@Embedded
+	private AddressEmbeddable address;
 
-    // --- Trial (UC01 passo 3: 30 dias) ---
+	// --- Trial (UC01 passo 3: 30 dias) ---
 
-    @Column(nullable = false)
-    private LocalDateTime trialStartDate;
+	@Column(nullable = false)
+	private LocalDateTime trialStartDate;
 
-    @Column(nullable = false)
-    private LocalDateTime trialEndDate;
+	@Column(nullable = false)
+	private LocalDateTime trialEndDate;
 
-    // --- Termos de uso ---
+	// --- Termos de uso ---
 
-    @Column(nullable = false)
-    private Boolean termsAccepted = false;
+	@Column(nullable = false)
+	private Boolean termsAccepted = false;
 
-    private LocalDateTime termsAcceptedAt;
+	private LocalDateTime termsAcceptedAt;
 
-    // --- Controle ---
+	// --- Controle ---
 
-    @Column(nullable = false)
-    private Boolean active = true;
+	@Column(nullable = false)
+	private Boolean active = true;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+	@UpdateTimestamp
+	@Column(nullable = false)
+	private LocalDateTime updatedAt;
+
 }

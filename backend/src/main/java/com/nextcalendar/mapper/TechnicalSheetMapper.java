@@ -13,35 +13,32 @@ import java.util.List;
 @Component
 public class TechnicalSheetMapper {
 
-    public TechnicalSheetEntity toEntity(ClientEntity client) {
-        TechnicalSheetEntity sheet = new TechnicalSheetEntity();
-        sheet.setClient(client);
-        return sheet;
-    }
+	public TechnicalSheetEntity toEntity(ClientEntity client) {
+		TechnicalSheetEntity sheet = new TechnicalSheetEntity();
+		sheet.setClient(client);
+		return sheet;
+	}
 
-    public TechnicalSheetEntryEntity toEntryEntity(
-            TechnicalSheetEntity sheet,
-            AppointmentEntity appointment,
-            String notes,
-            List<String> photoUrls
-    ) {
-        TechnicalSheetEntryEntity entry = new TechnicalSheetEntryEntity();
-        entry.setTechnicalSheet(sheet);
-        entry.setAppointment(appointment);
-        entry.setProfessional(appointment.getProfessional());
-        entry.setNotes(notes);
-        entry.setCreatedAt(LocalDateTime.now());
+	public TechnicalSheetEntryEntity toEntryEntity(TechnicalSheetEntity sheet, AppointmentEntity appointment,
+			String notes, List<String> photoUrls) {
+		TechnicalSheetEntryEntity entry = new TechnicalSheetEntryEntity();
+		entry.setTechnicalSheet(sheet);
+		entry.setAppointment(appointment);
+		entry.setProfessional(appointment.getProfessional());
+		entry.setNotes(notes);
+		entry.setCreatedAt(LocalDateTime.now());
 
-        if (photoUrls != null) {
-            for (String url : photoUrls) {
-                TechnicalSheetPhotoEntity photo = new TechnicalSheetPhotoEntity();
-                photo.setEntry(entry);
-                photo.setPhotoUrl(url);
-                photo.setCreatedAt(LocalDateTime.now());
-                entry.getPhotos().add(photo);
-            }
-        }
+		if (photoUrls != null) {
+			for (String url : photoUrls) {
+				TechnicalSheetPhotoEntity photo = new TechnicalSheetPhotoEntity();
+				photo.setEntry(entry);
+				photo.setPhotoUrl(url);
+				photo.setCreatedAt(LocalDateTime.now());
+				entry.getPhotos().add(photo);
+			}
+		}
 
-        return entry;
-    }
+		return entry;
+	}
+
 }

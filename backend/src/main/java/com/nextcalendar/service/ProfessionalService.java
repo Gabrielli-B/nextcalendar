@@ -23,256 +23,257 @@ import java.util.UUID;
 @Service
 public class ProfessionalService {
 
-    private final ProfessionalRepository professionalRepository;
-    private final EstablishmentRepository establishmentRepository;
-    private final UserRepository userRepository;
-    private final ProfessionalMapper professionalMapper;
-    private final PasswordEncoder passwordEncoder;
+	private final ProfessionalRepository professionalRepository;
 
-    public ProfessionalService(ProfessionalRepository professionalRepository,
-                               EstablishmentRepository establishmentRepository,
-                               UserRepository userRepository,
-                               ProfessionalMapper professionalMapper,
-                               PasswordEncoder passwordEncoder) {
-        this.professionalRepository = professionalRepository;
-        this.establishmentRepository = establishmentRepository;
-        this.userRepository = userRepository;
-        this.professionalMapper = professionalMapper;
-        this.passwordEncoder = passwordEncoder;
-    }
+	private final EstablishmentRepository establishmentRepository;
 
+	private final UserRepository userRepository;
 
-    private EstablishmentEntity findEstablishment(UUID establishmentId) {
-        return establishmentRepository.findById(establishmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
-    }
+	private final ProfessionalMapper professionalMapper;
 
-    private ProfessionalEntity findProfessional(UUID id) {
-        return professionalRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Profissional", id));
-    }
+	private final PasswordEncoder passwordEncoder;
 
-    // ─── Alfabeto seguro: sem 0/O (ambíguo) e 1/l (ambíguo) ─────────────────
-    private static final String TEMP_PWD_ALPHABET =
-            "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
-    private static final int TEMP_PWD_LENGTH = 10;
-    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+	public ProfessionalService(ProfessionalRepository professionalRepository,
+			EstablishmentRepository establishmentRepository, UserRepository userRepository,
+			ProfessionalMapper professionalMapper, PasswordEncoder passwordEncoder) {
+		this.professionalRepository = professionalRepository;
+		this.establishmentRepository = establishmentRepository;
+		this.userRepository = userRepository;
+		this.professionalMapper = professionalMapper;
+		this.passwordEncoder = passwordEncoder;
+	}
 
-    /** Gera uma senha temporária de {@value TEMP_PWD_LENGTH} caracteres com SecureRandom. */
-    private String generateTemporaryPassword() {
-        StringBuilder sb = new StringBuilder(TEMP_PWD_LENGTH);
-        for (int i = 0; i < TEMP_PWD_LENGTH; i++) {
-            sb.append(TEMP_PWD_ALPHABET.charAt(SECURE_RANDOM.nextInt(TEMP_PWD_ALPHABET.length())));
-        }
-        return sb.toString();
-    }
+	private EstablishmentEntity findEstablishment(UUID establishmentId) {
+		return establishmentRepository.findById(establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
+	}
 
-    @Transactional(readOnly = true)
-    public ProfessionalMeResponseDTO getMe() {
-        com.nextcalendar.entity.UserEntity user = com.nextcalendar.config.SecurityUtils.getRequiredAuthenticatedUser();
-        ProfessionalEntity professional = professionalRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Profissional não encontrado para o usuário logado.", user.getId()));
-        return new ProfessionalMeResponseDTO(professional);
-    }
+	private ProfessionalEntity findProfessional(UUID id) {
+		return professionalRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Profissional", id));
+	}
 
-    @Transactional(readOnly = true)
-    public ProfessionalMeResponseDTO findByUserId(UUID userId) {
-        ProfessionalEntity professional = professionalRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profissional não encontrado para o usuário.", userId));
-        return new ProfessionalMeResponseDTO(professional);
-    }
+	// ─── Alfabeto seguro: sem 0/O (ambíguo) e 1/l (ambíguo) ─────────────────
+	private static final String TEMP_PWD_ALPHABET = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
-    @Transactional(readOnly = true)
-    public ProfessionalMeResponseDTO getMyProfile(UUID userId) {
-        return findByUserId(userId);
-    }
+	private static final int TEMP_PWD_LENGTH = 10;
 
-    @Transactional
-    public ProfessionalProfileResponseDTO createProfessional(UUID establishmentId, ProfessionalCreateDTO dto) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para cadastrar novos profissionais.");
-            }
-        });
+	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-        if (userRepository.existsByEmail(dto.email()) || professionalRepository.existsByEmail(dto.email())) {
-            throw new BusinessException("O e-mail '" + dto.email() + "' já está cadastrado no sistema.");
-        }
+	/**
+	 * Gera uma senha temporária de {@value TEMP_PWD_LENGTH} caracteres com SecureRandom.
+	 */
+	private String generateTemporaryPassword() {
+		StringBuilder sb = new StringBuilder(TEMP_PWD_LENGTH);
+		for (int i = 0; i < TEMP_PWD_LENGTH; i++) {
+			sb.append(TEMP_PWD_ALPHABET.charAt(SECURE_RANDOM.nextInt(TEMP_PWD_ALPHABET.length())));
+		}
+		return sb.toString();
+	}
 
-        if (professionalRepository.existsByCpf(dto.cpf())) {
-            throw new BusinessException("O CPF '" + dto.cpf() + "' já está cadastrado no sistema.");
-        }
+	@Transactional(readOnly = true)
+	public ProfessionalMeResponseDTO getMe() {
+		com.nextcalendar.entity.UserEntity user = com.nextcalendar.config.SecurityUtils.getRequiredAuthenticatedUser();
+		ProfessionalEntity professional = professionalRepository.findByUserId(user.getId())
+			.orElseThrow(() -> new EntityNotFoundException("Profissional não encontrado para o usuário logado.",
+					user.getId()));
+		return new ProfessionalMeResponseDTO(professional);
+	}
 
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+	@Transactional(readOnly = true)
+	public ProfessionalMeResponseDTO findByUserId(UUID userId) {
+		ProfessionalEntity professional = professionalRepository.findByUserId(userId)
+			.orElseThrow(() -> new EntityNotFoundException("Profissional não encontrado para o usuário.", userId));
+		return new ProfessionalMeResponseDTO(professional);
+	}
 
-        // Gera senha temporária — o hash vai para o banco, o texto puro volta só na resposta
-        String temporaryPassword = generateTemporaryPassword();
+	@Transactional(readOnly = true)
+	public ProfessionalMeResponseDTO getMyProfile(UUID userId) {
+		return findByUserId(userId);
+	}
 
-        UserEntity user = new UserEntity();
-        user.setName(dto.name());
-        user.setEmail(dto.email());
-        user.setPasswordHash(passwordEncoder.encode(temporaryPassword));
-        user.setRole(UserRole.PROFESSIONAL);
-        user.setActive(true);
-        user.setMustChangePassword(true);   // força troca no primeiro login
+	@Transactional
+	public ProfessionalProfileResponseDTO createProfessional(UUID establishmentId, ProfessionalCreateDTO dto) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para cadastrar novos profissionais.");
+			}
+		});
 
-        UserEntity savedUser = userRepository.save(user);
+		if (userRepository.existsByEmail(dto.email()) || professionalRepository.existsByEmail(dto.email())) {
+			throw new BusinessException("O e-mail '" + dto.email() + "' já está cadastrado no sistema.");
+		}
 
-        ProfessionalEntity professional = professionalMapper.toEntity(dto, establishment);
-        professional.setUser(savedUser);
+		if (professionalRepository.existsByCpf(dto.cpf())) {
+			throw new BusinessException("O CPF '" + dto.cpf() + "' já está cadastrado no sistema.");
+		}
 
-        ProfessionalEntity savedProfessional = professionalRepository.save(professional);
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        // Devolve a senha temporária em texto puro SOMENTE aqui — nunca em GET
-        return new ProfessionalProfileResponseDTO(
-                savedProfessional.getName(),
-                savedProfessional.getNickname(),
-                savedProfessional.getCpf(),
-                savedProfessional.getEmail(),
-                savedProfessional.getPhone(),
-                savedProfessional.getGender(),
-                savedProfessional.getPhotoUrl(),
-                savedProfessional.getCommission(),
-                temporaryPassword
-        );
-    }
+		// Gera senha temporária — o hash vai para o banco, o texto puro volta só na
+		// resposta
+		String temporaryPassword = generateTemporaryPassword();
 
-    @Transactional
-    public ProfessionalDetailsResponseDTO updateProfessionalByAdmin(UUID id, ProfessionalAdminUpdateDTO dto) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para editar outros profissionais.");
-            }
-        });
+		UserEntity user = new UserEntity();
+		user.setName(dto.name());
+		user.setEmail(dto.email());
+		user.setPasswordHash(passwordEncoder.encode(temporaryPassword));
+		user.setRole(UserRole.PROFESSIONAL);
+		user.setActive(true);
+		user.setMustChangePassword(true); // força troca no primeiro login
 
-        ProfessionalEntity professional = findProfessional(id);
+		UserEntity savedUser = userRepository.save(user);
 
-        if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(professional.getEmail())) {
-            boolean emailExistsInUsers = userRepository.findByEmail(dto.email())
-                    .filter(u -> professional.getUser() == null || !u.getId().equals(professional.getUser().getId()))
-                    .isPresent();
+		ProfessionalEntity professional = professionalMapper.toEntity(dto, establishment);
+		professional.setUser(savedUser);
 
-            if (emailExistsInUsers || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
-                throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado no sistema.");
-            }
-        }
+		ProfessionalEntity savedProfessional = professionalRepository.save(professional);
 
-        if (dto.cpf() != null && !dto.cpf().isBlank() && !dto.cpf().equals(professional.getCpf())) {
-            if (professionalRepository.existsByCpfAndIdNot(dto.cpf(), id)) {
-                throw new BusinessException("O CPF '" + dto.cpf() + "' já está sendo usado por outro profissional.");
-            }
-        }
-        professionalMapper.updateEntityFromAdmin(professional, dto);
+		// Devolve a senha temporária em texto puro SOMENTE aqui — nunca em GET
+		return new ProfessionalProfileResponseDTO(savedProfessional.getName(), savedProfessional.getNickname(),
+				savedProfessional.getCpf(), savedProfessional.getEmail(), savedProfessional.getPhone(),
+				savedProfessional.getGender(), savedProfessional.getPhotoUrl(), savedProfessional.getCommission(),
+				temporaryPassword);
+	}
 
-        if (professional.getUser() != null) {
-            if (dto.name() != null && !dto.name().isBlank()) {
-                professional.getUser().setName(dto.name());
-            }
-            if (dto.email() != null && !dto.email().isBlank()) {
-                professional.getUser().setEmail(dto.email());
-            }
-            if (dto.active() != null) {
-                professional.getUser().setActive(dto.active());
-            }
-        }
+	@Transactional
+	public ProfessionalDetailsResponseDTO updateProfessionalByAdmin(UUID id, ProfessionalAdminUpdateDTO dto) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para editar outros profissionais.");
+			}
+		});
 
-        ProfessionalEntity updatedProfessional = professionalRepository.save(professional);
+		ProfessionalEntity professional = findProfessional(id);
 
-        return new ProfessionalDetailsResponseDTO(updatedProfessional);
-    }
+		if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(professional.getEmail())) {
+			boolean emailExistsInUsers = userRepository.findByEmail(dto.email())
+				.filter(u -> professional.getUser() == null || !u.getId().equals(professional.getUser().getId()))
+				.isPresent();
 
-    @Transactional
-    public ProfessionalProfileResponseDTO updateProfessionalBySelf(UUID id, ProfessionalSelfUpdateDTO dto) {
+			if (emailExistsInUsers || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
+				throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado no sistema.");
+			}
+		}
 
-        ProfessionalEntity professional = findProfessional(id);
+		if (dto.cpf() != null && !dto.cpf().isBlank() && !dto.cpf().equals(professional.getCpf())) {
+			if (professionalRepository.existsByCpfAndIdNot(dto.cpf(), id)) {
+				throw new BusinessException("O CPF '" + dto.cpf() + "' já está sendo usado por outro profissional.");
+			}
+		}
+		professionalMapper.updateEntityFromAdmin(professional, dto);
 
-        if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(professional.getEmail())) {
+		if (professional.getUser() != null) {
+			if (dto.name() != null && !dto.name().isBlank()) {
+				professional.getUser().setName(dto.name());
+			}
+			if (dto.email() != null && !dto.email().isBlank()) {
+				professional.getUser().setEmail(dto.email());
+			}
+			if (dto.active() != null) {
+				professional.getUser().setActive(dto.active());
+			}
+		}
 
-            boolean emailExistsInUsers = userRepository.findByEmail(dto.email())
-                    .filter(u -> professional.getUser() == null || !u.getId().equals(professional.getUser().getId()))
-                    .isPresent();
+		ProfessionalEntity updatedProfessional = professionalRepository.save(professional);
 
-            if (emailExistsInUsers || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
-                throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado no sistema.");
-            }
-        }
+		return new ProfessionalDetailsResponseDTO(updatedProfessional);
+	}
 
-        professionalMapper.updateEntityFromSelf(professional, dto);
+	@Transactional
+	public ProfessionalProfileResponseDTO updateProfessionalBySelf(UUID id, ProfessionalSelfUpdateDTO dto) {
 
-        if (professional.getUser() != null) {
-            if (dto.name() != null && !dto.name().isBlank()) {
-                professional.getUser().setName(dto.name());
-            }
-            if (dto.email() != null && !dto.email().isBlank()) {
-                professional.getUser().setEmail(dto.email());
-            }
-        }
+		ProfessionalEntity professional = findProfessional(id);
 
-        ProfessionalEntity updatedProfessional = professionalRepository.save(professional);
+		if (dto.email() != null && !dto.email().isBlank() && !dto.email().equals(professional.getEmail())) {
 
-        return new ProfessionalProfileResponseDTO(updatedProfessional);
-    }
+			boolean emailExistsInUsers = userRepository.findByEmail(dto.email())
+				.filter(u -> professional.getUser() == null || !u.getId().equals(professional.getUser().getId()))
+				.isPresent();
 
-    @Transactional(readOnly = true)
-    public ProfessionalDetailsResponseDTO findProfessionalById(UUID id) {
-        ProfessionalEntity professional = findProfessional(id);
+			if (emailExistsInUsers || professionalRepository.existsByEmailAndIdNot(dto.email(), id)) {
+				throw new BusinessException("O e-mail '" + dto.email() + "' já está sendo usado no sistema.");
+			}
+		}
 
-        return new ProfessionalDetailsResponseDTO(professional);
-    }
+		professionalMapper.updateEntityFromSelf(professional, dto);
 
-    @Transactional(readOnly = true)
-    public ProfessionalDetailsResponseDTO findProfessionalByIdAndEstablishment(UUID id, UUID establishmentId) {
-        findEstablishment(establishmentId);
+		if (professional.getUser() != null) {
+			if (dto.name() != null && !dto.name().isBlank()) {
+				professional.getUser().setName(dto.name());
+			}
+			if (dto.email() != null && !dto.email().isBlank()) {
+				professional.getUser().setEmail(dto.email());
+			}
+		}
 
-        ProfessionalEntity professional = professionalRepository
-                .findByIdAndEstablishmentId(id, establishmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Profissional", id));
+		ProfessionalEntity updatedProfessional = professionalRepository.save(professional);
 
-        return new ProfessionalDetailsResponseDTO(professional);
-    }
+		return new ProfessionalProfileResponseDTO(updatedProfessional);
+	}
 
-    @Transactional(readOnly = true)
-    public Page<ProfessionalMinResponseDTO> findByEstablishment(UUID establishmentId, Pageable pageable) {
+	@Transactional(readOnly = true)
+	public ProfessionalDetailsResponseDTO findProfessionalById(UUID id) {
+		ProfessionalEntity professional = findProfessional(id);
 
-        findEstablishment(establishmentId);
+		return new ProfessionalDetailsResponseDTO(professional);
+	}
 
-        return professionalRepository.findByEstablishmentId(establishmentId, pageable)
-                .map(ProfessionalMinResponseDTO::new);
-    }
+	@Transactional(readOnly = true)
+	public ProfessionalDetailsResponseDTO findProfessionalByIdAndEstablishment(UUID id, UUID establishmentId) {
+		findEstablishment(establishmentId);
 
-    @Transactional(readOnly = true)
-    public Page<ProfessionalMinResponseDTO> findActiveByEstablishment(UUID establishmentId, Pageable pageable) {
+		ProfessionalEntity professional = professionalRepository.findByIdAndEstablishmentId(id, establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Profissional", id));
 
-        findEstablishment(establishmentId);
+		return new ProfessionalDetailsResponseDTO(professional);
+	}
 
-        return professionalRepository.findByEstablishmentIdAndActiveTrue(establishmentId, pageable)
-                .map(ProfessionalMinResponseDTO::new);
-    }
+	@Transactional(readOnly = true)
+	public Page<ProfessionalMinResponseDTO> findByEstablishment(UUID establishmentId, Pageable pageable) {
 
-    @Transactional(readOnly = true)
-    public Page<ProfessionalMinResponseDTO> findByNameAndEstablishment(UUID establishmentId, String name, Pageable pageable) {
-        findEstablishment(establishmentId);
+		findEstablishment(establishmentId);
 
-        return professionalRepository
-                .findByEstablishmentIdAndNameContainingIgnoreCase(establishmentId, name, pageable)
-                .map(ProfessionalMinResponseDTO::new);
-    }
+		return professionalRepository.findByEstablishmentId(establishmentId, pageable)
+			.map(ProfessionalMinResponseDTO::new);
+	}
 
-    @Transactional
-    public void deleteProfessional(UUID id) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para desativar profissionais.");
-            }
-        });
-        ProfessionalEntity professional = findProfessional(id);
+	@Transactional(readOnly = true)
+	public Page<ProfessionalMinResponseDTO> findActiveByEstablishment(UUID establishmentId, Pageable pageable) {
 
-        professional.setActive(false);
+		findEstablishment(establishmentId);
 
-        if (professional.getUser() != null) {
-            professional.getUser().setActive(false);
-        }
+		return professionalRepository.findByEstablishmentIdAndActiveTrue(establishmentId, pageable)
+			.map(ProfessionalMinResponseDTO::new);
+	}
 
-        professionalRepository.save(professional);
-    }
+	@Transactional(readOnly = true)
+	public Page<ProfessionalMinResponseDTO> findByNameAndEstablishment(UUID establishmentId, String name,
+			Pageable pageable) {
+		findEstablishment(establishmentId);
+
+		return professionalRepository.findByEstablishmentIdAndNameContainingIgnoreCase(establishmentId, name, pageable)
+			.map(ProfessionalMinResponseDTO::new);
+	}
+
+	@Transactional
+	public void deleteProfessional(UUID id) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para desativar profissionais.");
+			}
+		});
+		ProfessionalEntity professional = findProfessional(id);
+
+		professional.setActive(false);
+
+		if (professional.getUser() != null) {
+			professional.getUser().setActive(false);
+		}
+
+		professionalRepository.save(professional);
+	}
+
 }

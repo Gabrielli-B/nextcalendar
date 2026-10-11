@@ -15,27 +15,29 @@ import java.util.UUID;
 @RequestMapping("/api/v1/establishments/{establishmentId}/professionals/{professionalId}/blocked-times")
 public class BlockedTimeController implements BlockedTimeApi {
 
-    private final BlockedTimeService blockedTimeService;
+	private final BlockedTimeService blockedTimeService;
 
-    public BlockedTimeController(BlockedTimeService blockedTimeService) {
-        this.blockedTimeService = blockedTimeService;
-    }
+	public BlockedTimeController(BlockedTimeService blockedTimeService) {
+		this.blockedTimeService = blockedTimeService;
+	}
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public BlockedTimeResponseDTO create(
-            @PathVariable UUID establishmentId,
-            @PathVariable UUID professionalId,
-            @Valid @RequestBody BlockedTimeCreateDTO dto
-    ) {
-        return blockedTimeService.create(establishmentId, professionalId, dto);
-    }
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public BlockedTimeResponseDTO create(@PathVariable UUID establishmentId, @PathVariable UUID professionalId,
+			@Valid @RequestBody BlockedTimeCreateDTO dto) {
+		return blockedTimeService.create(establishmentId, professionalId, dto);
+	}
 
-    @GetMapping
-    public List<BlockedTimeResponseDTO> findByProfessional(@PathVariable UUID establishmentId, @PathVariable UUID professionalId)
-    {return blockedTimeService.findByProfessional(establishmentId, professionalId);}
+	@GetMapping
+	public List<BlockedTimeResponseDTO> findByProfessional(@PathVariable UUID establishmentId,
+			@PathVariable UUID professionalId) {
+		return blockedTimeService.findByProfessional(establishmentId, professionalId);
+	}
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {blockedTimeService.delete(id);}
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable UUID id) {
+		blockedTimeService.delete(id);
+	}
+
 }

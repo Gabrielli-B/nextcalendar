@@ -10,31 +10,28 @@ import java.util.UUID;
 
 public interface PhotoRepository extends JpaRepository<PhotoEntity, UUID> {
 
-    List<PhotoEntity> findByAppointmentIdOrderByCreatedAtAsc(UUID appointmentId);
+	List<PhotoEntity> findByAppointmentIdOrderByCreatedAtAsc(UUID appointmentId);
 
-    List<PhotoEntity> findByClientIdOrderByCreatedAtDesc(UUID clientId);
+	List<PhotoEntity> findByClientIdOrderByCreatedAtDesc(UUID clientId);
 
-    @Query("""
-            SELECT p FROM PhotoEntity p
-            WHERE p.client.id = :clientId
-              AND p.appointment.professional.id = :professionalId
-            ORDER BY p.createdAt DESC
-            """)
-    List<PhotoEntity> findByClientIdAndProfessionalId(
-            @Param("clientId") UUID clientId,
-            @Param("professionalId") UUID professionalId
-    );
+	@Query("""
+			SELECT p FROM PhotoEntity p
+			WHERE p.client.id = :clientId
+			  AND p.appointment.professional.id = :professionalId
+			ORDER BY p.createdAt DESC
+			""")
+	List<PhotoEntity> findByClientIdAndProfessionalId(@Param("clientId") UUID clientId,
+			@Param("professionalId") UUID professionalId);
 
-    @Query("""
-            SELECT p FROM PhotoEntity p
-            WHERE p.client.id = :clientId
-              AND p.appointment.establishment.id = :establishmentId
-            ORDER BY p.createdAt DESC
-            """)
-    List<PhotoEntity> findByClientIdAndEstablishmentId(
-            @Param("clientId") UUID clientId,
-            @Param("establishmentId") UUID establishmentId
-    );
+	@Query("""
+			SELECT p FROM PhotoEntity p
+			WHERE p.client.id = :clientId
+			  AND p.appointment.establishment.id = :establishmentId
+			ORDER BY p.createdAt DESC
+			""")
+	List<PhotoEntity> findByClientIdAndEstablishmentId(@Param("clientId") UUID clientId,
+			@Param("establishmentId") UUID establishmentId);
 
-    long countByAppointmentId(UUID appointmentId);
+	long countByAppointmentId(UUID appointmentId);
+
 }

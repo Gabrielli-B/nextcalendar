@@ -19,40 +19,46 @@ import java.util.UUID;
 
 public class ServiceController implements ServiceApi {
 
-    private final ServiceService serviceService;
+	private final ServiceService serviceService;
 
-    public ServiceController(ServiceService serviceService) {
-        this.serviceService = serviceService;
-    }
+	public ServiceController(ServiceService serviceService) {
+		this.serviceService = serviceService;
+	}
 
+	@Override
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public ServiceMinResponseDTO createService(@Valid @RequestBody ServiceCreateDTO serviceDTO,
+			@PathVariable UUID establishmentId) {
+		return serviceService.createService(establishmentId, serviceDTO);
+	}
 
-    @Override
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ServiceMinResponseDTO createService(@Valid @RequestBody ServiceCreateDTO serviceDTO,@PathVariable UUID establishmentId){
-        return serviceService.createService(establishmentId,serviceDTO);
-    }
+	@Override
+	@PutMapping("/{id}")
+	public ServiceMinResponseDTO updateService(@PathVariable UUID establishmentId, @PathVariable("id") UUID idService,
+			@Valid @RequestBody ServiceUpdateDTO serviceDTO) {
+		return serviceService.updateService(establishmentId, idService, serviceDTO);
+	}
 
-    @Override
-    @PutMapping("/{id}")
-    public ServiceMinResponseDTO updateService(@PathVariable UUID establishmentId, @PathVariable("id") UUID idService, @Valid @RequestBody ServiceUpdateDTO serviceDTO){
-        return serviceService.updateService(establishmentId,idService,serviceDTO);
-    }
+	@Override
+	@GetMapping("/search")
+	public Page<ServiceMinResponseDTO> findServicesByName(@RequestParam(defaultValue = "") String name,
+			@PathVariable UUID establishmentId, @ParameterObject Pageable pageable) {
+		return serviceService.findServicesByName(name, establishmentId, pageable);
+	}
 
-    @Override
-    @GetMapping("/search")
-    public Page<ServiceMinResponseDTO> findServicesByName(@RequestParam (defaultValue = "") String name, @PathVariable UUID establishmentId, @ParameterObject Pageable pageable){
-        return serviceService.findServicesByName(name,establishmentId,pageable);
-    }
+	@Override
+	@GetMapping
+	public Page<ServiceMinResponseDTO> findAllServices(@PathVariable UUID establishmentId,
+			@ParameterObject Pageable pageable) {
+		return serviceService.findAllServices(establishmentId, pageable);
+	}
 
-    @Override
-    @GetMapping
-    public Page<ServiceMinResponseDTO> findAllServices(@PathVariable UUID establishmentId, @ParameterObject Pageable pageable) {
-        return serviceService.findAllServices(establishmentId, pageable);
-    }
+	@Override
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteService(@PathVariable UUID id) {
+		serviceService.deleteService(id);
+	}
 
-    @Override
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteService(@PathVariable UUID id){serviceService.deleteService(id);}
 }

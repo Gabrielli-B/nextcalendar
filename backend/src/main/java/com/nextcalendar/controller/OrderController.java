@@ -15,46 +15,50 @@ import java.util.UUID;
 
 public class OrderController implements OrderApi {
 
-    private final OrderService orderService;
+	private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
+	public OrderController(OrderService orderService) {
+		this.orderService = orderService;
+	}
 
-    // ── Abrir/recuperar a comanda de um agendamento ──
-    @Override
-    @PostMapping("/appointments/{appointmentId}/order")
-    public OrderResponseDTO openOrder(@PathVariable UUID establishmentId, @PathVariable UUID appointmentId) {
-        return orderService.openOrder(establishmentId, appointmentId);
-    }
+	// ── Abrir/recuperar a comanda de um agendamento ──
+	@Override
+	@PostMapping("/appointments/{appointmentId}/order")
+	public OrderResponseDTO openOrder(@PathVariable UUID establishmentId, @PathVariable UUID appointmentId) {
+		return orderService.openOrder(establishmentId, appointmentId);
+	}
 
-    @Override
-    @GetMapping("/orders/{orderId}")
-    public OrderResponseDTO findById(@PathVariable UUID establishmentId, @PathVariable UUID orderId) {
-        return orderService.findById(establishmentId, orderId);
-    }
+	@Override
+	@GetMapping("/orders/{orderId}")
+	public OrderResponseDTO findById(@PathVariable UUID establishmentId, @PathVariable UUID orderId) {
+		return orderService.findById(establishmentId, orderId);
+	}
 
-    @Override
-    @PostMapping("/orders/{orderId}/items")
-    public OrderResponseDTO addItem(@PathVariable UUID establishmentId, @PathVariable UUID orderId, @Valid @RequestBody OrderItemAddDTO dto) {
-        return orderService.addItem(establishmentId, orderId, dto);
-    }
+	@Override
+	@PostMapping("/orders/{orderId}/items")
+	public OrderResponseDTO addItem(@PathVariable UUID establishmentId, @PathVariable UUID orderId,
+			@Valid @RequestBody OrderItemAddDTO dto) {
+		return orderService.addItem(establishmentId, orderId, dto);
+	}
 
-    @Override
-    @DeleteMapping("/orders/{orderId}/items/{itemId}")
-    public OrderResponseDTO removeItem(@PathVariable UUID establishmentId, @PathVariable UUID orderId, @PathVariable UUID itemId) {
-        return orderService.removeItem(establishmentId, orderId, itemId);
-    }
+	@Override
+	@DeleteMapping("/orders/{orderId}/items/{itemId}")
+	public OrderResponseDTO removeItem(@PathVariable UUID establishmentId, @PathVariable UUID orderId,
+			@PathVariable UUID itemId) {
+		return orderService.removeItem(establishmentId, orderId, itemId);
+	}
 
-    @Override
-    @PatchMapping("/orders/{orderId}")
-    public OrderResponseDTO update(@PathVariable UUID establishmentId, @PathVariable UUID orderId, @Valid @RequestBody OrderUpdateDTO dto) {
-        return orderService.update(establishmentId, orderId, dto);
-    }
+	@Override
+	@PatchMapping("/orders/{orderId}")
+	public OrderResponseDTO update(@PathVariable UUID establishmentId, @PathVariable UUID orderId,
+			@Valid @RequestBody OrderUpdateDTO dto) {
+		return orderService.update(establishmentId, orderId, dto);
+	}
 
-    @Override
-    @PostMapping("/orders/{orderId}/finish")
-    public OrderResponseDTO finish(@PathVariable UUID establishmentId, @PathVariable UUID orderId) {
-        return orderService.finish(establishmentId, orderId);
-    }
+	@Override
+	@PostMapping("/orders/{orderId}/finish")
+	public OrderResponseDTO finish(@PathVariable UUID establishmentId, @PathVariable UUID orderId) {
+		return orderService.finish(establishmentId, orderId);
+	}
+
 }

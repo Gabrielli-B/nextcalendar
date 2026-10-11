@@ -9,8 +9,9 @@ import java.util.UUID;
 
 public interface BlockedTimeRepository extends JpaRepository<BlockedTimeEntity, UUID> {
 
-    List<BlockedTimeEntity> findByProfessionalIdAndStartDateTimeLessThanAndEndDateTimeGreaterThan(
-            UUID professionalId, LocalDateTime endDateTime, LocalDateTime startDateTime);
+	List<BlockedTimeEntity> findByProfessionalIdAndStartDateTimeLessThanAndEndDateTimeGreaterThan(UUID professionalId,
+			LocalDateTime endDateTime, LocalDateTime startDateTime);
 
-    List<BlockedTimeEntity> findByProfessionalIdOrderByStartDateTimeAsc(UUID professionalId);
+	List<BlockedTimeEntity> findByProfessionalIdOrderByStartDateTimeAsc(UUID professionalId);
+
 }

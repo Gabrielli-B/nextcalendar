@@ -32,284 +32,316 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class ComandaIntegrationTest {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+	@Autowired
+	private WebApplicationContext webApplicationContext;
 
-    private MockMvc mockMvc;
+	private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+	@Autowired
+	private ObjectMapper objectMapper;
 
-    @Autowired
-    private UserRepository userRepository;
+	@Autowired
+	private UserRepository userRepository;
 
-    @Autowired
-    private EstablishmentRepository establishmentRepository;
+	@Autowired
+	private EstablishmentRepository establishmentRepository;
 
-    @Autowired
-    private ProfessionalRepository professionalRepository;
+	@Autowired
+	private ProfessionalRepository professionalRepository;
 
-    @Autowired
-    private ServiceRepository serviceRepository;
+	@Autowired
+	private ServiceRepository serviceRepository;
 
-    @Autowired
-    private ClientRepository clientRepository;
+	@Autowired
+	private ClientRepository clientRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+	@Autowired
+	private ProductRepository productRepository;
 
-    @Autowired
-    private AppointmentRepository appointmentRepository;
+	@Autowired
+	private AppointmentRepository appointmentRepository;
 
-    @Autowired
-    private OrderRepository orderRepository;
+	@Autowired
+	private OrderRepository orderRepository;
 
-    @Autowired
-    private AppointmentService appointmentService;
+	@Autowired
+	private AppointmentService appointmentService;
 
-    @Autowired
-    private JwtService jwtService;
+	@Autowired
+	private JwtService jwtService;
 
-    private EstablishmentEntity establishment;
-    private UserEntity managerUser;
-    private String managerToken;
+	private EstablishmentEntity establishment;
 
-    private UserEntity professionalUserA;
-    private ProfessionalEntity professionalA;
-    private String professionalTokenA;
+	private UserEntity managerUser;
 
-    private UserEntity professionalUserB;
-    private ProfessionalEntity professionalB;
-    private String professionalTokenB;
+	private String managerToken;
 
-    private ServiceEntity testService;
-    private ProductEntity testProduct;
-    private ClientEntity testClient;
-    private AppointmentEntity appointmentA;
+	private UserEntity professionalUserA;
 
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                .apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity())
-                .build();
+	private ProfessionalEntity professionalA;
 
-        // 1. Manager
-        managerUser = new UserEntity();
-        managerUser.setName("Gestor Geral");
-        managerUser.setEmail("gestor." + UUID.randomUUID() + "@test.com");
-        managerUser.setPasswordHash("hash123");
-        managerUser.setRole(UserRole.MANAGER);
-        managerUser.setActive(true);
-        managerUser = userRepository.save(managerUser);
-        managerToken = jwtService.generateToken(managerUser.getId(), managerUser.getEmail());
+	private String professionalTokenA;
 
-        // 2. Establishment
-        establishment = new EstablishmentEntity();
-        establishment.setName("Barbearia Integration");
-        establishment.setLegalName("Barbearia Integration LTDA");
-        establishment.setCnpj(String.format("%014d", ThreadLocalRandom.current().nextLong(100_000_000_000_000L)));
-        establishment.setOwnerId(managerUser.getId());
-        establishment.setEmail("barb." + UUID.randomUUID() + "@test.com");
-        establishment.setPhone("11999990000");
-        establishment.setWhatsapp("11999990000");
-        establishment.setTermsAccepted(true);
-        establishment.setTermsAcceptedAt(LocalDateTime.now());
-        establishment.setTrialStartDate(LocalDateTime.now());
-        establishment.setTrialEndDate(LocalDateTime.now().plusDays(30));
-        establishment = establishmentRepository.save(establishment);
+	private UserEntity professionalUserB;
 
-        // 3. Professional A
-        professionalUserA = new UserEntity();
-        professionalUserA.setName("Profissional A");
-        professionalUserA.setEmail("profa." + UUID.randomUUID() + "@test.com");
-        professionalUserA.setPasswordHash("hash123");
-        professionalUserA.setRole(UserRole.PROFESSIONAL);
-        professionalUserA.setActive(true);
-        professionalUserA.setMustChangePassword(false);
-        professionalUserA = userRepository.save(professionalUserA);
-        professionalTokenA = jwtService.generateToken(professionalUserA.getId(), professionalUserA.getEmail());
+	private ProfessionalEntity professionalB;
 
-        professionalA = new ProfessionalEntity();
-        professionalA.setUser(professionalUserA);
-        professionalA.setEstablishment(establishment);
-        professionalA.setName("Profissional A");
-        professionalA.setEmail(professionalUserA.getEmail());
-        professionalA.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
-        professionalA.setActive(true);
-        professionalA = professionalRepository.save(professionalA);
+	private String professionalTokenB;
 
-        // 4. Professional B
-        professionalUserB = new UserEntity();
-        professionalUserB.setName("Profissional B");
-        professionalUserB.setEmail("profb." + UUID.randomUUID() + "@test.com");
-        professionalUserB.setPasswordHash("hash123");
-        professionalUserB.setRole(UserRole.PROFESSIONAL);
-        professionalUserB.setActive(true);
-        professionalUserB.setMustChangePassword(false);
-        professionalUserB = userRepository.save(professionalUserB);
-        professionalTokenB = jwtService.generateToken(professionalUserB.getId(), professionalUserB.getEmail());
+	private ServiceEntity testService;
 
-        professionalB = new ProfessionalEntity();
-        professionalB.setUser(professionalUserB);
-        professionalB.setEstablishment(establishment);
-        professionalB.setName("Profissional B");
-        professionalB.setEmail(professionalUserB.getEmail());
-        professionalB.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
-        professionalB.setActive(true);
-        professionalB = professionalRepository.save(professionalB);
+	private ProductEntity testProduct;
 
-        // 5. Service & Product & Client
-        testService = new ServiceEntity();
-        testService.setEstablishment(establishment);
-        testService.setName("Corte Premium " + UUID.randomUUID());
-        testService.setCategory("Cabelo");
-        testService.setPrice(new BigDecimal("60.00"));
-        testService.setDuration(40);
-        testService.setActive(true);
-        testService = serviceRepository.save(testService);
+	private ClientEntity testClient;
 
-        testProduct = new ProductEntity();
-        testProduct.setEstablishment(establishment);
-        testProduct.setName("Gel Fixador " + UUID.randomUUID());
-        testProduct.setCategory("Finalizador");
-        testProduct.setPrice(new BigDecimal("35.00"));
-        testProduct.setStockQuantity(10);
-        testProduct.setActive(true);
-        testProduct = productRepository.save(testProduct);
+	private AppointmentEntity appointmentA;
 
-        testClient = new ClientEntity();
-        testClient.setName("Cliente Fulano");
-        testClient.setPhone("11988887777");
-        testClient.setEmail("cliente." + UUID.randomUUID() + "@test.com");
-        testClient.setActive(true);
-        testClient = clientRepository.save(testClient);
+	@BeforeEach
+	void setUp() {
+		mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+			.apply(org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity())
+			.build();
 
-        // 6. Appointment for Professional A
-        appointmentA = new AppointmentEntity();
-        appointmentA.setEstablishment(establishment);
-        appointmentA.setProfessional(professionalA);
-        appointmentA.setClient(testClient);
-        appointmentA.setService(testService);
-        appointmentA.setStartDateTime(LocalDateTime.now().plusDays(2).withHour(10).withMinute(0));
-        appointmentA.setEndDateTime(LocalDateTime.now().plusDays(2).withHour(10).withMinute(40));
-        appointmentA.setStatus(AppointmentStatus.CONFIRMED);
-        appointmentA.setFitIn(false);
-        appointmentA = appointmentRepository.save(appointmentA);
-    }
+		// 1. Manager
+		managerUser = new UserEntity();
+		managerUser.setName("Gestor Geral");
+		managerUser.setEmail("gestor." + UUID.randomUUID() + "@test.com");
+		managerUser.setPasswordHash("hash123");
+		managerUser.setRole(UserRole.MANAGER);
+		managerUser.setActive(true);
+		managerUser = userRepository.save(managerUser);
+		managerToken = jwtService.generateToken(managerUser.getId(), managerUser.getEmail());
 
-    @Test
-    @DisplayName("Gestor pode criar produto, mas profissional recebe 403 Forbidden")
-    void testProductCreationRolePermission() throws Exception {
-        ProductCreateDTO productDTO = new ProductCreateDTO("Pomada Matte " + UUID.randomUUID(), "Cabelo", new BigDecimal("45.00"), 15);
+		// 2. Establishment
+		establishment = new EstablishmentEntity();
+		establishment.setName("Barbearia Integration");
+		establishment.setLegalName("Barbearia Integration LTDA");
+		establishment.setCnpj(String.format("%014d", ThreadLocalRandom.current().nextLong(100_000_000_000_000L)));
+		establishment.setOwnerId(managerUser.getId());
+		establishment.setEmail("barb." + UUID.randomUUID() + "@test.com");
+		establishment.setPhone("11999990000");
+		establishment.setWhatsapp("11999990000");
+		establishment.setTermsAccepted(true);
+		establishment.setTermsAcceptedAt(LocalDateTime.now());
+		establishment.setTrialStartDate(LocalDateTime.now());
+		establishment.setTrialEndDate(LocalDateTime.now().plusDays(30));
+		establishment = establishmentRepository.save(establishment);
 
-        // Gestor cria produto com sucesso -> 201 CREATED
-        mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/products")
-                        .header("Authorization", "Bearer " + managerToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productDTO)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.name").value(productDTO.name()));
+		// 3. Professional A
+		professionalUserA = new UserEntity();
+		professionalUserA.setName("Profissional A");
+		professionalUserA.setEmail("profa." + UUID.randomUUID() + "@test.com");
+		professionalUserA.setPasswordHash("hash123");
+		professionalUserA.setRole(UserRole.PROFESSIONAL);
+		professionalUserA.setActive(true);
+		professionalUserA.setMustChangePassword(false);
+		professionalUserA = userRepository.save(professionalUserA);
+		professionalTokenA = jwtService.generateToken(professionalUserA.getId(), professionalUserA.getEmail());
 
-        // Profissional tenta criar produto -> 403 FORBIDDEN
-        mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/products")
-                        .header("Authorization", "Bearer " + professionalTokenA)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productDTO)))
-                .andExpect(status().isForbidden());
-    }
+		professionalA = new ProfessionalEntity();
+		professionalA.setUser(professionalUserA);
+		professionalA.setEstablishment(establishment);
+		professionalA.setName("Profissional A");
+		professionalA.setEmail(professionalUserA.getEmail());
+		professionalA.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
+		professionalA.setActive(true);
+		professionalA = professionalRepository.save(professionalA);
 
-    @Test
-    @DisplayName("Abrir comanda para agendamento, adicionar item e finalizar comanda fechando pedido e concluindo agendamento")
-    void testOpenAddAndFinishOrder() throws Exception {
-        // 1. Profissional A abre comanda do seu agendamento
-        String openResponse = mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId() + "/order")
-                        .header("Authorization", "Bearer " + professionalTokenA))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("OPEN"))
-                .andExpect(jsonPath("$.items.length()").value(1))
-                .andExpect(jsonPath("$.items[0].name").value(testService.getName()))
-                .andReturn().getResponse().getContentAsString();
+		// 4. Professional B
+		professionalUserB = new UserEntity();
+		professionalUserB.setName("Profissional B");
+		professionalUserB.setEmail("profb." + UUID.randomUUID() + "@test.com");
+		professionalUserB.setPasswordHash("hash123");
+		professionalUserB.setRole(UserRole.PROFESSIONAL);
+		professionalUserB.setActive(true);
+		professionalUserB.setMustChangePassword(false);
+		professionalUserB = userRepository.save(professionalUserB);
+		professionalTokenB = jwtService.generateToken(professionalUserB.getId(), professionalUserB.getEmail());
 
-        UUID orderId = UUID.fromString(objectMapper.readTree(openResponse).get("id").asText());
+		professionalB = new ProfessionalEntity();
+		professionalB.setUser(professionalUserB);
+		professionalB.setEstablishment(establishment);
+		professionalB.setName("Profissional B");
+		professionalB.setEmail(professionalUserB.getEmail());
+		professionalB.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
+		professionalB.setActive(true);
+		professionalB = professionalRepository.save(professionalB);
 
-        // 2. Adiciona um produto à comanda
-        OrderItemAddDTO addItemDTO = new OrderItemAddDTO(OrderItemType.PRODUCT, testProduct.getId(), 2);
-        mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId + "/items")
-                        .header("Authorization", "Bearer " + professionalTokenA)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addItemDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items.length()").value(2));
+		// 5. Service & Product & Client
+		testService = new ServiceEntity();
+		testService.setEstablishment(establishment);
+		testService.setName("Corte Premium " + UUID.randomUUID());
+		testService.setCategory("Cabelo");
+		testService.setPrice(new BigDecimal("60.00"));
+		testService.setDuration(40);
+		testService.setActive(true);
+		testService = serviceRepository.save(testService);
 
-        // 3. Define forma de pagamento e desconto
-        OrderUpdateDTO updateDTO = new OrderUpdateDTO(new BigDecimal("10.00"), PaymentMethod.PIX);
-        mockMvc.perform(patch("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId)
-                        .header("Authorization", "Bearer " + professionalTokenA)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateDTO)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.paymentMethod").value("PIX"))
-                .andExpect(jsonPath("$.discountAmount").value(10.0));
+		testProduct = new ProductEntity();
+		testProduct.setEstablishment(establishment);
+		testProduct.setName("Gel Fixador " + UUID.randomUUID());
+		testProduct.setCategory("Finalizador");
+		testProduct.setPrice(new BigDecimal("35.00"));
+		testProduct.setStockQuantity(10);
+		testProduct.setActive(true);
+		testProduct = productRepository.save(testProduct);
 
-        // 4. Finaliza a comanda
-        mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId + "/finish")
-                        .header("Authorization", "Bearer " + professionalTokenA))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CLOSED"));
+		testClient = new ClientEntity();
+		testClient.setName("Cliente Fulano");
+		testClient.setPhone("11988887777");
+		testClient.setEmail("cliente." + UUID.randomUUID() + "@test.com");
+		testClient.setActive(true);
+		testClient = clientRepository.save(testClient);
 
-        // Verifica se agendamento passou para DONE
-        AppointmentEntity updatedAppointment = appointmentRepository.findById(appointmentA.getId()).orElseThrow();
-        assertEquals(AppointmentStatus.DONE, updatedAppointment.getStatus());
+		// 6. Appointment for Professional A
+		appointmentA = new AppointmentEntity();
+		appointmentA.setEstablishment(establishment);
+		appointmentA.setProfessional(professionalA);
+		appointmentA.setClient(testClient);
+		appointmentA.setService(testService);
+		appointmentA.setStartDateTime(LocalDateTime.now().plusDays(2).withHour(10).withMinute(0));
+		appointmentA.setEndDateTime(LocalDateTime.now().plusDays(2).withHour(10).withMinute(40));
+		appointmentA.setStatus(AppointmentStatus.CONFIRMED);
+		appointmentA.setFitIn(false);
+		appointmentA = appointmentRepository.save(appointmentA);
+	}
 
-        // 5. Tentar editar comanda após CLOSED deve retornar erro de negócio (400)
-        mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId + "/items")
-                        .header("Authorization", "Bearer " + professionalTokenA)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(addItemDTO)))
-                .andExpect(status().isBadRequest());
-    }
+	@Test
+	@DisplayName("Gestor pode criar produto, mas profissional recebe 403 Forbidden")
+	void testProductCreationRolePermission() throws Exception {
+		ProductCreateDTO productDTO = new ProductCreateDTO("Pomada Matte " + UUID.randomUUID(), "Cabelo",
+				new BigDecimal("45.00"), 15);
 
-    @Test
-    @DisplayName("Profissional B não pode acessar nem modificar comanda do Profissional A (403 Forbidden)")
-    void testCrossProfessionalOrderForbidden() throws Exception {
-        // Profissional A abre sua comanda
-        String openResponse = mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId() + "/order")
-                        .header("Authorization", "Bearer " + professionalTokenA))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+		// Gestor cria produto com sucesso -> 201 CREATED
+		mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/products")
+				.header("Authorization", "Bearer " + managerToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(productDTO)))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.name").value(productDTO.name()));
 
-        UUID orderId = UUID.fromString(objectMapper.readTree(openResponse).get("id").asText());
+		// Profissional tenta criar produto -> 403 FORBIDDEN
+		mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/products")
+				.header("Authorization", "Bearer " + professionalTokenA)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(productDTO)))
+			.andExpect(status().isForbidden());
+	}
 
-        // Profissional B tenta consultar a comanda de A -> 403
-        mockMvc.perform(get("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId)
-                        .header("Authorization", "Bearer " + professionalTokenB))
-                .andExpect(status().isForbidden());
+	@Test
+	@DisplayName("Abrir comanda para agendamento, adicionar item e finalizar comanda fechando pedido e concluindo agendamento")
+	void testOpenAddAndFinishOrder() throws Exception {
+		// 1. Profissional A abre comanda do seu agendamento
+		String openResponse = mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId()
+					+ "/order")
+				.header("Authorization", "Bearer " + professionalTokenA))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("OPEN"))
+			.andExpect(jsonPath("$.items.length()").value(1))
+			.andExpect(jsonPath("$.items[0].name").value(testService.getName()))
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
 
-        // Profissional B tenta abrir a comanda do agendamento de A -> 403
-        mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId() + "/order")
-                        .header("Authorization", "Bearer " + professionalTokenB))
-                .andExpect(status().isForbidden());
-    }
+		UUID orderId = UUID.fromString(objectMapper.readTree(openResponse).get("id").asText());
 
-    @Test
-    @DisplayName("Cancelamento de agendamento cancela comanda OPEN")
-    void testCancelAppointmentCancelsOpenOrder() throws Exception {
-        // 1. Abre a comanda
-        mockMvc.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId() + "/order")
-                        .header("Authorization", "Bearer " + professionalTokenA))
-                .andExpect(status().isOk());
+		// 2. Adiciona um produto à comanda
+		OrderItemAddDTO addItemDTO = new OrderItemAddDTO(OrderItemType.PRODUCT, testProduct.getId(), 2);
+		mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId + "/items")
+				.header("Authorization", "Bearer " + professionalTokenA)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(addItemDTO)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.items.length()").value(2));
 
-        OrderEntity order = orderRepository.findByAppointmentId(appointmentA.getId()).orElseThrow();
-        assertEquals(OrderStatus.OPEN, order.getStatus());
+		// 3. Define forma de pagamento e desconto
+		OrderUpdateDTO updateDTO = new OrderUpdateDTO(new BigDecimal("10.00"), PaymentMethod.PIX);
+		mockMvc
+			.perform(patch("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId)
+				.header("Authorization", "Bearer " + professionalTokenA)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(updateDTO)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.paymentMethod").value("PIX"))
+			.andExpect(jsonPath("$.discountAmount").value(10.0));
 
-        // 2. Cancela o agendamento
-        mockMvc.perform(patch("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId() + "/cancel")
-                        .header("Authorization", "Bearer " + professionalTokenA))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("CANCELLED"));
+		// 4. Finaliza a comanda
+		mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId + "/finish")
+				.header("Authorization", "Bearer " + professionalTokenA))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("CLOSED"));
 
-        // 3. Comanda deve estar cancelada
-        OrderEntity cancelledOrder = orderRepository.findById(order.getId()).orElseThrow();
-        assertEquals(OrderStatus.CANCELLED, cancelledOrder.getStatus());
-    }
+		// Verifica se agendamento passou para DONE
+		AppointmentEntity updatedAppointment = appointmentRepository.findById(appointmentA.getId()).orElseThrow();
+		assertEquals(AppointmentStatus.DONE, updatedAppointment.getStatus());
+
+		// 5. Tentar editar comanda após CLOSED deve retornar erro de negócio (400)
+		mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId + "/items")
+				.header("Authorization", "Bearer " + professionalTokenA)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(addItemDTO)))
+			.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	@DisplayName("Profissional B não pode acessar nem modificar comanda do Profissional A (403 Forbidden)")
+	void testCrossProfessionalOrderForbidden() throws Exception {
+		// Profissional A abre sua comanda
+		String openResponse = mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId()
+					+ "/order")
+				.header("Authorization", "Bearer " + professionalTokenA))
+			.andExpect(status().isOk())
+			.andReturn()
+			.getResponse()
+			.getContentAsString();
+
+		UUID orderId = UUID.fromString(objectMapper.readTree(openResponse).get("id").asText());
+
+		// Profissional B tenta consultar a comanda de A -> 403
+		mockMvc
+			.perform(get("/api/v1/establishments/" + establishment.getId() + "/orders/" + orderId)
+				.header("Authorization", "Bearer " + professionalTokenB))
+			.andExpect(status().isForbidden());
+
+		// Profissional B tenta abrir a comanda do agendamento de A -> 403
+		mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId()
+					+ "/order")
+				.header("Authorization", "Bearer " + professionalTokenB))
+			.andExpect(status().isForbidden());
+	}
+
+	@Test
+	@DisplayName("Cancelamento de agendamento cancela comanda OPEN")
+	void testCancelAppointmentCancelsOpenOrder() throws Exception {
+		// 1. Abre a comanda
+		mockMvc
+			.perform(post("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId()
+					+ "/order")
+				.header("Authorization", "Bearer " + professionalTokenA))
+			.andExpect(status().isOk());
+
+		OrderEntity order = orderRepository.findByAppointmentId(appointmentA.getId()).orElseThrow();
+		assertEquals(OrderStatus.OPEN, order.getStatus());
+
+		// 2. Cancela o agendamento
+		mockMvc
+			.perform(patch("/api/v1/establishments/" + establishment.getId() + "/appointments/" + appointmentA.getId()
+					+ "/cancel")
+				.header("Authorization", "Bearer " + professionalTokenA))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("CANCELLED"));
+
+		// 3. Comanda deve estar cancelada
+		OrderEntity cancelledOrder = orderRepository.findById(order.getId()).orElseThrow();
+		assertEquals(OrderStatus.CANCELLED, cancelledOrder.getStatus());
+	}
+
 }

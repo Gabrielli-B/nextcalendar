@@ -7,24 +7,21 @@ import org.hibernate.validator.constraints.br.CPF;
 import java.math.BigDecimal;
 
 public record ProfessionalAdminUpdateDTO(
-        @Size(min = 3,max = 100,message = "O nome deve ter entre 3 a 100 caracteres.")
-        String name,
+		@Size(min = 3, max = 100, message = "O nome deve ter entre 3 a 100 caracteres.") String name,
 
-        String nickname,
+		String nickname,
 
-        String specialty,
+		String specialty,
 
-        @CPF(message = "CPF inválido.")
-        String cpf,
+		@CPF(message = "CPF inválido.") String cpf,
 
-        @Email(message = "E-mail inválido")
-        String email,
+		@Email(message = "E-mail inválido") String email,
 
-        String phone,
+		String phone,
 
-        String photoUrl,
+		String photoUrl,
 
-        BigDecimal commission,
+		BigDecimal commission,
 
-        Boolean active
-) { }
+		Boolean active) {
+}

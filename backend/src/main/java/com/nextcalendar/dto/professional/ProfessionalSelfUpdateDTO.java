@@ -5,16 +5,15 @@ import jakarta.validation.constraints.Size;
 
 public record ProfessionalSelfUpdateDTO(
 
-        @Size(min = 3,max = 100,message = "O nome deve ter entre 3 a 100 caracteres.")
-        String name,
+		@Size(min = 3, max = 100, message = "O nome deve ter entre 3 a 100 caracteres.") String name,
 
-        String nickname,
+		String nickname,
 
-        @Email(message = "E-mail inválido")
-        String email,
+		@Email(message = "E-mail inválido") String email,
 
-        String phone,
+		String phone,
 
-        String photoUrl
+		String photoUrl
 
-) { }
+) {
+}

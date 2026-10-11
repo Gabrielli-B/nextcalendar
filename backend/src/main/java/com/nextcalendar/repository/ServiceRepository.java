@@ -10,25 +10,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ServiceRepository extends JpaRepository<ServiceEntity, UUID> {
-    Page<ServiceEntity> findByEstablishmentAndActiveTrue(EstablishmentEntity establishment, Pageable pageable);
 
-    Page<ServiceEntity> findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(
-            EstablishmentEntity establishment,
-            String name,
-            Pageable pageable
-    );
+	Page<ServiceEntity> findByEstablishmentAndActiveTrue(EstablishmentEntity establishment, Pageable pageable);
 
-    Optional<ServiceEntity> findByIdAndEstablishmentAndActiveTrue(UUID id, EstablishmentEntity establishment);
+	Page<ServiceEntity> findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(EstablishmentEntity establishment,
+			String name, Pageable pageable);
 
-    Optional<ServiceEntity> findByIdAndActiveTrue(UUID id);
+	Optional<ServiceEntity> findByIdAndEstablishmentAndActiveTrue(UUID id, EstablishmentEntity establishment);
 
-    Optional<ServiceEntity> findByNameAndEstablishmentAndActiveFalse(
-            String name,
-            EstablishmentEntity establishment
-    );
+	Optional<ServiceEntity> findByIdAndActiveTrue(UUID id);
 
-    boolean existsByNameAndEstablishmentAndActiveTrue(String name, EstablishmentEntity establishment);
+	Optional<ServiceEntity> findByNameAndEstablishmentAndActiveFalse(String name, EstablishmentEntity establishment);
 
-    boolean existsByNameAndEstablishmentAndActiveTrueAndIdNot(String name,EstablishmentEntity establishment,UUID idService);
+	boolean existsByNameAndEstablishmentAndActiveTrue(String name, EstablishmentEntity establishment);
+
+	boolean existsByNameAndEstablishmentAndActiveTrueAndIdNot(String name, EstablishmentEntity establishment,
+			UUID idService);
 
 }
