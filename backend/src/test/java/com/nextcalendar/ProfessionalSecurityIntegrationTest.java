@@ -24,6 +24,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -78,7 +79,7 @@ class ProfessionalSecurityIntegrationTest {
         establishmentEntity = new EstablishmentEntity();
         establishmentEntity.setName("Barbearia Teste");
         establishmentEntity.setLegalName("Barbearia Teste LTDA");
-        establishmentEntity.setCnpj(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 14));
+        establishmentEntity.setCnpj(String.format("%014d", ThreadLocalRandom.current().nextLong(100_000_000_000_000L)));
         establishmentEntity.setOwnerId(managerUser.getId());
         establishmentEntity.setEmail("barbearia." + UUID.randomUUID() + "@email.com");
         establishmentEntity.setPhone("11999999999");
@@ -105,7 +106,7 @@ class ProfessionalSecurityIntegrationTest {
         professionalEntity.setEstablishment(establishmentEntity);
         professionalEntity.setName(professionalUser.getName());
         professionalEntity.setEmail(professionalUser.getEmail());
-        professionalEntity.setCpf(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 11));
+        professionalEntity.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
         professionalEntity.setPhone("11988888888");
         professionalEntity.setCommission(new BigDecimal("50.00"));
         professionalEntity.setActive(true);

@@ -22,6 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -106,7 +107,7 @@ class ComandaIntegrationTest {
         establishment = new EstablishmentEntity();
         establishment.setName("Barbearia Integration");
         establishment.setLegalName("Barbearia Integration LTDA");
-        establishment.setCnpj(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 14));
+        establishment.setCnpj(String.format("%014d", ThreadLocalRandom.current().nextLong(100_000_000_000_000L)));
         establishment.setOwnerId(managerUser.getId());
         establishment.setEmail("barb." + UUID.randomUUID() + "@test.com");
         establishment.setPhone("11999990000");
@@ -133,7 +134,7 @@ class ComandaIntegrationTest {
         professionalA.setEstablishment(establishment);
         professionalA.setName("Profissional A");
         professionalA.setEmail(professionalUserA.getEmail());
-        professionalA.setCpf(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 11));
+        professionalA.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
         professionalA.setActive(true);
         professionalA = professionalRepository.save(professionalA);
 
@@ -153,7 +154,7 @@ class ComandaIntegrationTest {
         professionalB.setEstablishment(establishment);
         professionalB.setName("Profissional B");
         professionalB.setEmail(professionalUserB.getEmail());
-        professionalB.setCpf(UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 11));
+        professionalB.setCpf(String.format("%011d", ThreadLocalRandom.current().nextLong(100_000_000_000L)));
         professionalB.setActive(true);
         professionalB = professionalRepository.save(professionalB);
 

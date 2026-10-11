@@ -77,9 +77,23 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- Banco em memória usado apenas nos testes (ver src/test/resources/application.properties) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-flyway</artifactId>
+		</dependency>
+
+		<!-- Suporte a PostgreSQL para o Flyway (a partir do Flyway 10 o suporte
+		     a bancos foi separado do flyway-core em módulos dedicados) -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
 

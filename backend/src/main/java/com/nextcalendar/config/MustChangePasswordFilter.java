@@ -27,7 +27,7 @@ import java.util.UUID;
  * <ul>
  *   <li>{@code POST /api/v1/auth/change-password}</li>
  *   <li>{@code POST /api/v1/auth/logout} (caso seja implementado)</li>
- *   <li>Rotas públicas ({@code /api/v1/auth/login}, {@code /h2-console}, etc.)</li>
+ *   <li>Rotas públicas ({@code /api/v1/auth/login}, etc.)</li>
  * </ul>
  *
  * <p>Requisições sem token são ignoradas — a segurança de autenticação cabe
@@ -41,7 +41,6 @@ public class MustChangePasswordFilter extends OncePerRequestFilter {
             "/api/v1/auth/logout",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
-            "/h2-console",
             "/swagger-ui",
             "/v3/api-docs"
     );
