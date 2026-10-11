@@ -67,8 +67,8 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 			WHERE a.professional.id = :professionalId
 			  AND ((:status IS NOT NULL AND a.status = :status) OR (:status IS NULL AND a.status IN (com.nextcalendar.entity.AppointmentStatus.IN_PROGRESS, com.nextcalendar.entity.AppointmentStatus.DONE)))
 			  AND (:clientId IS NULL OR (a.client IS NOT NULL AND a.client.id = :clientId))
-			  AND (:from IS NULL OR a.startDateTime >= :from)
-			  AND (:to IS NULL OR a.startDateTime <= :to)
+			  AND (CAST(:from AS timestamp) IS NULL OR a.startDateTime >= :from)
+			  AND (CAST(:to AS timestamp) IS NULL OR a.startDateTime <= :to)
 			ORDER BY a.startDateTime DESC
 			""")
 	Page<AppointmentEntity> findAttendancesByProfessional(@Param("professionalId") UUID professionalId,
@@ -81,8 +81,8 @@ public interface AppointmentRepository extends JpaRepository<AppointmentEntity, 
 			  AND (:professionalId IS NULL OR a.professional.id = :professionalId)
 			  AND ((:status IS NOT NULL AND a.status = :status) OR (:status IS NULL AND a.status IN (com.nextcalendar.entity.AppointmentStatus.IN_PROGRESS, com.nextcalendar.entity.AppointmentStatus.DONE)))
 			  AND (:clientId IS NULL OR (a.client IS NOT NULL AND a.client.id = :clientId))
-			  AND (:from IS NULL OR a.startDateTime >= :from)
-			  AND (:to IS NULL OR a.startDateTime <= :to)
+			  AND (CAST(:from AS timestamp) IS NULL OR a.startDateTime >= :from)
+			  AND (CAST(:to AS timestamp) IS NULL OR a.startDateTime <= :to)
 			ORDER BY a.startDateTime DESC
 			""")
 	Page<AppointmentEntity> findAttendancesByEstablishment(@Param("establishmentId") UUID establishmentId,

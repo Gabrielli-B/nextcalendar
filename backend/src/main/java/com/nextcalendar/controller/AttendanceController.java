@@ -2,6 +2,7 @@ package com.nextcalendar.controller;
 
 import com.nextcalendar.dto.attendance.AttendanceResponseDTO;
 import com.nextcalendar.entity.AppointmentStatus;
+import com.nextcalendar.exception.BusinessException;
 import com.nextcalendar.service.AttendanceService;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -35,7 +36,7 @@ public class AttendanceController {
 			return endOfDay ? date.atTime(LocalTime.MAX) : date.atStartOfDay();
 		}
 		catch (Exception e) {
-			return null;
+			throw new BusinessException("Período inválido: '" + s + "' — use AAAA-MM-DD ou AAAA-MM-DDTHH:MM:SS.");
 		}
 	}
 

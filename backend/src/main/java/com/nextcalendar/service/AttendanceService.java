@@ -3,6 +3,7 @@ package com.nextcalendar.service;
 import com.nextcalendar.config.SecurityUtils;
 import com.nextcalendar.dto.attendance.AttendanceResponseDTO;
 import com.nextcalendar.entity.*;
+import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,15 +32,19 @@ public class AttendanceService {
 
 	private final TechnicalSheetEntryRepository technicalSheetEntryRepository;
 
+	private final ClientRepository clientRepository;
+
 	public AttendanceService(AppointmentRepository appointmentRepository, ProfessionalRepository professionalRepository,
 			EstablishmentRepository establishmentRepository, OrderRepository orderRepository,
-			PhotoRepository photoRepository, TechnicalSheetEntryRepository technicalSheetEntryRepository) {
+			PhotoRepository photoRepository, TechnicalSheetEntryRepository technicalSheetEntryRepository,
+			ClientRepository clientRepository) {
 		this.appointmentRepository = appointmentRepository;
 		this.professionalRepository = professionalRepository;
 		this.establishmentRepository = establishmentRepository;
 		this.orderRepository = orderRepository;
 		this.photoRepository = photoRepository;
 		this.technicalSheetEntryRepository = technicalSheetEntryRepository;
+		this.clientRepository = clientRepository;
 	}
 
 	private AttendanceResponseDTO toDTO(AppointmentEntity a) {
@@ -131,6 +136,9 @@ public class AttendanceService {
 		UserEntity currentUser = SecurityUtils.getRequiredAuthenticatedUser();
 		if (currentUser.getRole() == UserRole.CUSTOMER) {
 			throw new AccessDeniedException("Clientes não têm acesso aos atendimentos.");
+		}
+		if (!clientRepository.existsById(clientId)) {
+			throw new EntityNotFoundException("Cliente", clientId);
 		}
 
 		if (currentUser.getRole() == UserRole.PROFESSIONAL) {
