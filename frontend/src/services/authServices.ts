@@ -1,6 +1,6 @@
 import api from './api';
 
-type LoginResponse = {
+export type LoginResponse = {
   token: string;
   user: {
     id: string;
