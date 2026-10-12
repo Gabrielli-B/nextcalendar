@@ -38,6 +38,7 @@ endif
         frontend-start frontend-android frontend-ios frontend-web \
         frontend-install frontend-lint frontend-clean frontend-reset \
         frontend-api-check frontend-test-integration frontend-e2e-ui \
+        expose-up expose-down \
         barbearia-db-up barbearia-db-down barbearia-api barbearia-bridge
 
 # ── Ajuda ─────────────────────────────────────────────────────────────────────
@@ -82,7 +83,11 @@ help:
 	  "  make barbearia-db-up      Sobe MongoDB + Evolution API (Docker)" \
 	  "  make barbearia-db-down    Para os serviços do Docker" \
 	  "  make barbearia-api        Roda a API .NET do agente" \
-	  "  make barbearia-bridge     Roda o bridge do WhatsApp (Node.js)"
+	  "  make barbearia-bridge     Roda o bridge do WhatsApp (Node.js)" \
+	  "" \
+	  "  $(C_CYAN)Exposição pública$(C_RESET)" \
+	  "  make expose-up            Deixa app + API acessíveis na internet (túnel)" \
+	  "  make expose-down          Encerra a exposição pública"
 
 # ── Atalhos ───────────────────────────────────────────────────────────────────
 
@@ -173,6 +178,14 @@ frontend-test-integration:
 # E2E de UI: Playwright sobe o Expo web sozinho (backend precisa estar no ar).
 frontend-e2e-ui:
 	@cd $(FRONTEND_DIR) && npm run test:e2e
+
+# Exposição pública: proxy same-origin (:8085) + túnel Cloudflare + Expo web.
+# A URL pública fica em scripts/expose/run/urls.txt.
+expose-up:
+	@./scripts/expose/start.sh
+
+expose-down:
+	@./scripts/expose/stop.sh
 
 frontend-clean:
 	@cd $(FRONTEND_DIR) && $(RM_DIR) node_modules
