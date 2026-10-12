@@ -1,5 +1,10 @@
-import api from './api';
-
+/**
+ * Tipos do fluxo de agendamento do cliente (tela Home / booking-tab).
+ *
+ * As chamadas antigas para /bookings/* foram removidas: o recurso não existe
+ * no backend (é /appointments) e só o tipo era importado. Quem precisa de dados
+ * usa appointmentServices.getClientAppointments().
+ */
 export type Booking = {
   id: string;
   date: string;
@@ -17,29 +22,3 @@ export type Booking = {
   /** ID do serviço original — propagado para o fluxo de remarcação. */
   serviceId?: string;
 };
-
-/**
- * Busca agendamentos do cliente logado.
- * Tenta buscar via API backend; retorna array vazio [] por padrão caso o endpoint não exista ainda.
- */
-export async function getMyBookings(token: string | null): Promise<Booking[]> {
-  try {
-    const { data } = await api.get<Booking[]>('/bookings/me');
-    return data || [];
-  } catch (err) {
-    // Retorna array vazio até que o BookingController no backend esteja totalmente conectado
-    return [];
-  }
-}
-
-/**
- * Cancela um agendamento do cliente.
- */
-export async function cancelBooking(id: string, token: string | null): Promise<{ success: boolean }> {
-  try {
-    await api.delete(`/bookings/${id}`);
-    return { success: true };
-  } catch (err) {
-    return { success: true };
-  }
-}

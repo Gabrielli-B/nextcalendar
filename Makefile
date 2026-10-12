@@ -34,9 +34,10 @@ endif
 
 .PHONY: help run dev \
         db-up db-down db-logs db-status \
-        backend-run backend-test backend-e2e backend-build backend-clean \
+        backend-run backend-test backend-e2e backend-openapi-dump backend-build backend-clean \
         frontend-start frontend-android frontend-ios frontend-web \
         frontend-install frontend-lint frontend-clean frontend-reset \
+        frontend-api-check \
         barbearia-db-up barbearia-db-down barbearia-api barbearia-bridge
 
 # ── Ajuda ─────────────────────────────────────────────────────────────────────
@@ -60,6 +61,7 @@ help:
 	  "  make backend-run          Roda a aplicação Spring Boot" \
 	  "  make backend-test         Executa os testes do backend" \
 	  "  make backend-e2e          Roda a suíte E2E (backend precisa estar no ar)" \
+	  "  make backend-openapi-dump Atualiza backend/specs/openapi.json (backend no ar)" \
 	  "  make backend-build        Compila e empacota o backend" \
 	  "  make backend-clean        Remove os artefatos de build" \
 	  "" \
@@ -70,6 +72,7 @@ help:
 	  "  make frontend-web         Inicia no browser" \
 	  "  make frontend-install     Instala as dependências" \
 	  "  make frontend-lint        Executa o linter" \
+	  "  make frontend-api-check   Valida endpoints dos services vs OpenAPI" \
 	  "  make frontend-clean       Remove node_modules" \
 	  "  make frontend-reset       Remove node_modules e reinstala" \
 	  "" \
@@ -126,6 +129,11 @@ backend-test:
 backend-e2e:
 	@$(BACKEND_DIR)/e2e/run.sh $(addprefix $(BACKEND_DIR)/e2e/,$(FILES))
 
+# Regenera o snapshot do OpenAPI usado pelo check de contrato do frontend.
+backend-openapi-dump:
+	@curl -sf http://localhost:8080/v3/api-docs -o $(BACKEND_DIR)/specs/openapi.json
+	@echo "✓ backend/specs/openapi.json atualizado"
+
 backend-build:
 	@cd $(BACKEND_DIR) && $(MVN) package -DskipTests
 
@@ -151,6 +159,11 @@ frontend-install:
 
 frontend-lint:
 	@cd $(FRONTEND_DIR) && npm run lint
+
+# Contrato estático: paths/métodos dos services contra backend/specs/openapi.json
+frontend-api-check:
+	@cd $(FRONTEND_DIR) && npm run check:api
+
 
 frontend-clean:
 	@cd $(FRONTEND_DIR) && $(RM_DIR) node_modules
