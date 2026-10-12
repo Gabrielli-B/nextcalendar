@@ -14,15 +14,20 @@ export default defineConfig({
   retries: 0,
   reporter: [['list'], ['html', { outputFolder: 'report', open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:8090',
+    // PW_BASE_URL aponta para outra origem (ex.: túnel público) sem subir Expo local
+    baseURL: process.env.PW_BASE_URL || 'http://localhost:8090',
     trace: 'retain-on-failure',
   },
-  webServer: {
-    command: 'npx expo start --web --port 8090',
-    cwd: '..',
-    url: 'http://localhost:8090',
-    reuseExistingServer: !process.env.CI,
-    timeout: 240_000,
-    env: { CI: '1', EXPO_NO_TELEMETRY: '1' },
-  },
+  ...(process.env.PW_BASE_URL
+    ? {}
+    : {
+        webServer: {
+          command: 'npx expo start --web --port 8090',
+          cwd: '..',
+          url: 'http://localhost:8090',
+          reuseExistingServer: !process.env.CI,
+          timeout: 240_000,
+          env: { CI: '1', EXPO_NO_TELEMETRY: '1' },
+        },
+      }),
 });
