@@ -51,7 +51,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "check:api": "node scripts/check-api-contract.mjs"
+    "check:api": "node scripts/check-api-contract.mjs",
+    "test:integration": "vitest run --config vitest.config.mts"
   },
   "private": true
 }

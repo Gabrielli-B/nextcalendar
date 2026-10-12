@@ -37,7 +37,7 @@ endif
         backend-run backend-test backend-e2e backend-openapi-dump backend-build backend-clean \
         frontend-start frontend-android frontend-ios frontend-web \
         frontend-install frontend-lint frontend-clean frontend-reset \
-        frontend-api-check \
+        frontend-api-check frontend-test-integration frontend-e2e-ui \
         barbearia-db-up barbearia-db-down barbearia-api barbearia-bridge
 
 # ── Ajuda ─────────────────────────────────────────────────────────────────────
@@ -73,6 +73,8 @@ help:
 	  "  make frontend-install     Instala as dependências" \
 	  "  make frontend-lint        Executa o linter" \
 	  "  make frontend-api-check   Valida endpoints dos services vs OpenAPI" \
+	  "  make frontend-test-integration  Testes de integração (backend no ar)" \
+	  "  make frontend-e2e-ui      E2E de UI (Playwright + Expo web)" \
 	  "  make frontend-clean       Remove node_modules" \
 	  "  make frontend-reset       Remove node_modules e reinstala" \
 	  "" \
@@ -164,6 +166,13 @@ frontend-lint:
 frontend-api-check:
 	@cd $(FRONTEND_DIR) && npm run check:api
 
+# Integração: services do frontend chamando o backend REAL (precisa estar no ar).
+frontend-test-integration:
+	@cd $(FRONTEND_DIR) && npm run test:integration
+
+# E2E de UI: Playwright sobe o Expo web sozinho (backend precisa estar no ar).
+frontend-e2e-ui:
+	@cd $(FRONTEND_DIR) && npm run test:e2e
 
 frontend-clean:
 	@cd $(FRONTEND_DIR) && $(RM_DIR) node_modules
