@@ -25,7 +25,9 @@ function pickTarget(url) {
 }
 
 function forward(req, res, target) {
-  const headers = { ...req.headers, host: `${target.host}:${target.port}` };
+  // Preserva o Host original (ex.: https://xxx.trycloudflare.com): assim o Spring
+  // enxerga a requisição como same-origin e não bloqueia com "Invalid CORS request".
+  const headers = { ...req.headers, host: req.headers.host || `${target.host}:${target.port}` };
   delete headers['accept-encoding']; // mantém o corpo legível ao reescrever
 
   const proxyReq = http.request(

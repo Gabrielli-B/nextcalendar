@@ -15,6 +15,8 @@ public class WebConfig implements WebMvcConfigurer {
 					"http://127.0.0.1:8081", "http://127.0.0.1:8085", "http://127.0.0.1:19000",
 					"http://127.0.0.1:19006", "http://10.0.2.2:8081", "http://10.0.2.2:19000", "http://localhost:8090",
 					"http://127.0.0.1:8090")
+			// Túneis rápidos do Cloudflare (URL muda a cada reinício do expose)
+			.allowedOriginPatterns("https://*.trycloudflare.com")
 			.allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT")
 			.allowedHeaders("*")
 			.allowCredentials(true);
