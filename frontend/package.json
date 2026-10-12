@@ -52,7 +52,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "check:api": "node scripts/check-api-contract.mjs",
-    "test:integration": "vitest run --config vitest.config.mts"
+    "test:integration": "vitest run --config vitest.config.mts",
+    "test:e2e": "playwright test --config e2e-ui/playwright.config.ts"
   },
   "private": true
 }

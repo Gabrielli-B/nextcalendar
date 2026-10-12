@@ -85,3 +85,8 @@ yarn-error.*
 # Docs
 *.GUIA_DESENVOLVIMENTO.md
 *.README.md
+
+# Playwright (E2E de UI)
+frontend/e2e-ui/report/
+frontend/e2e-ui/test-results/
+frontend/test-results/

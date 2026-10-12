@@ -54,7 +54,7 @@ export default function ServicosScreen() {
    * promise e guarda `active` (`react-hooks/set-state-in-effect`).
    */
   useEffect(() => {
-    if (!loadingEstablishment || !establishmentId) return;
+    if (loadingEstablishment || !establishmentId) return;
 
     const estId = establishmentId;
     let active = true;
