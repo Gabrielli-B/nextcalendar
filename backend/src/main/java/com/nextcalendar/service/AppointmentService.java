@@ -42,10 +42,13 @@ public class AppointmentService {
 
 	private final AppointmentMapper appointmentMapper;
 
+	private final ProfessionalService professionalService;
+
 	public AppointmentService(AppointmentRepository appointmentRepository,
 			WorkingHoursRepository workingHoursRepository, BlockedTimeRepository blockedTimeRepository,
 			ProfessionalRepository professionalRepository, ServiceRepository serviceRepository,
-			ClientRepository clientRepository, OrderRepository orderRepository, AppointmentMapper appointmentMapper) {
+			ClientRepository clientRepository, OrderRepository orderRepository, AppointmentMapper appointmentMapper,
+			ProfessionalService professionalService) {
 		this.appointmentRepository = appointmentRepository;
 		this.workingHoursRepository = workingHoursRepository;
 		this.blockedTimeRepository = blockedTimeRepository;
@@ -54,6 +57,7 @@ public class AppointmentService {
 		this.clientRepository = clientRepository;
 		this.orderRepository = orderRepository;
 		this.appointmentMapper = appointmentMapper;
+		this.professionalService = professionalService;
 	}
 
 	private ProfessionalEntity findProfessional(UUID professionalId, UUID establishmentId) {
@@ -85,6 +89,7 @@ public class AppointmentService {
 
 		ProfessionalEntity professional = findProfessional(professionalId, establishmentId);
 		ServiceEntity service = findService(serviceId, professional.getEstablishment());
+		professionalService.validarVinculoProfissionalServico(professional, service);
 		WorkingHoursEntity workingHours = findWorkingHoursOrThrow(professionalId, date.getDayOfWeek());
 
 		int durationMinutes = service.getDuration();
@@ -151,6 +156,7 @@ public class AppointmentService {
 
 		ProfessionalEntity professional = findProfessional(dto.professionalId(), establishmentId);
 		ServiceEntity service = findService(dto.serviceId(), professional.getEstablishment());
+		professionalService.validarVinculoProfissionalServico(professional, service);
 
 		ClientEntity client = dto.clientId() != null ? findClient(dto.clientId()) : null;
 

@@ -3,6 +3,8 @@ package com.nextcalendar.service;
 import com.nextcalendar.dto.professional.*;
 import com.nextcalendar.entity.EstablishmentEntity;
 import com.nextcalendar.entity.ProfessionalEntity;
+import com.nextcalendar.entity.ProfessionalServiceEntity;
+import com.nextcalendar.entity.ServiceEntity;
 import com.nextcalendar.entity.UserEntity;
 import com.nextcalendar.entity.UserRole;
 import com.nextcalendar.exception.BusinessException;
@@ -10,6 +12,8 @@ import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.mapper.ProfessionalMapper;
 import com.nextcalendar.repository.EstablishmentRepository;
 import com.nextcalendar.repository.ProfessionalRepository;
+import com.nextcalendar.repository.ProfessionalServiceRepository;
+import com.nextcalendar.repository.ServiceRepository;
 import com.nextcalendar.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -33,14 +41,21 @@ public class ProfessionalService {
 
 	private final PasswordEncoder passwordEncoder;
 
+	private final ServiceRepository serviceRepository;
+
+	private final ProfessionalServiceRepository professionalServiceRepository;
+
 	public ProfessionalService(ProfessionalRepository professionalRepository,
 			EstablishmentRepository establishmentRepository, UserRepository userRepository,
-			ProfessionalMapper professionalMapper, PasswordEncoder passwordEncoder) {
+			ProfessionalMapper professionalMapper, PasswordEncoder passwordEncoder, ServiceRepository serviceRepository,
+			ProfessionalServiceRepository professionalServiceRepository) {
 		this.professionalRepository = professionalRepository;
 		this.establishmentRepository = establishmentRepository;
 		this.userRepository = userRepository;
 		this.professionalMapper = professionalMapper;
 		this.passwordEncoder = passwordEncoder;
+		this.serviceRepository = serviceRepository;
+		this.professionalServiceRepository = professionalServiceRepository;
 	}
 
 	private EstablishmentEntity findEstablishment(UUID establishmentId) {
@@ -274,6 +289,59 @@ public class ProfessionalService {
 		}
 
 		professionalRepository.save(professional);
+	}
+
+	// ─── Vínculo profissional ↔ serviço ────────────────────────────────────
+
+	@Transactional(readOnly = true)
+	public List<ProfessionalServiceMinResponseDTO> findServiceLinks(UUID establishmentId) {
+		findEstablishment(establishmentId);
+
+		return professionalServiceRepository.findByProfessional_Establishment_Id(establishmentId)
+			.stream()
+			.map(ProfessionalServiceMinResponseDTO::new)
+			.toList();
+	}
+
+	@Transactional
+	public List<ProfessionalServiceMinResponseDTO> replaceServiceLinks(UUID establishmentId, UUID professionalId,
+			List<UUID> serviceIds) {
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
+
+		ProfessionalEntity professional = professionalRepository
+			.findByIdAndEstablishmentId(professionalId, establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Profissional", professionalId));
+
+		Set<UUID> unicos = new LinkedHashSet<>(serviceIds == null ? List.<UUID>of() : serviceIds);
+
+		List<ServiceEntity> services = new ArrayList<>(unicos.size());
+		for (UUID serviceId : unicos) {
+			services.add(serviceRepository.findByIdAndEstablishmentAndActiveTrue(serviceId, establishment)
+				.orElseThrow(() -> new EntityNotFoundException("Serviço", serviceId)));
+		}
+
+		professionalServiceRepository.deleteAllByProfessionalId(professionalId);
+
+		List<ProfessionalServiceEntity> novos = services.stream()
+			.map(service -> new ProfessionalServiceEntity(professional, service))
+			.toList();
+		professionalServiceRepository.saveAll(novos);
+
+		return novos.stream().map(ProfessionalServiceMinResponseDTO::new).toList();
+	}
+
+	@Transactional(readOnly = true)
+	public void validarVinculoProfissionalServico(ProfessionalEntity professional, ServiceEntity service) {
+		if (professionalServiceRepository.countById_ProfessionalId(professional.getId()) == 0) {
+			return;
+		}
+		if (professionalServiceRepository.countById_ServiceId(service.getId()) == 0) {
+			return;
+		}
+		if (!professionalServiceRepository.existsById_ProfessionalIdAndIdServiceId(professional.getId(),
+				service.getId())) {
+			throw new BusinessException(professional.getName() + " não realiza o serviço " + service.getName() + ".");
+		}
 	}
 
 }

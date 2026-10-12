@@ -112,18 +112,20 @@ def cpf():
 print(f"run_id={uuid.uuid4()}")
 # phones de REGISTER são únicos na aplicação ( AuthService valida duplicidade )
 import itertools
-slots = ["02", "03a", "03b", "03c", "07", "08", "09", "10", "11", "12", "13", "14a", "14b", "15a", "15b", "15c"]
+slots = ["02", "03a", "03b", "03c", "07", "08", "09", "10", "11", "12", "13", "14a", "14b", "15a", "15b", "15c", "16"]
 for s in slots:
     print(f'phone_{s}="519{"".join(str(random.randint(0, 9)) for _ in range(8))}"')
 # nomes legados usados pelos arquivos 03 e 07
 print(f'cnpj_auth="{cnpj()}"')   # 03-establishments
 print(f'cnpj_prof="{cnpj()}"')   # 07-professionals
 print(f'cpf_prof="{cpf()}"')     # 07-professionals
-# um CNPJ/CPF por arquivo restante (08..15)
-for n in range(8, 16):
+# um CNPJ/CPF por arquivo restante (08..16)
+for n in range(8, 17):
     print(f'cnpj_{n:02d}="{cnpj()}"')
-for n in range(8, 15):
+for n in range(8, 17):
     print(f'cpf_{n:02d}="{cpf()}"')
+# arquivo 16 cria dois profissionais
+print(f'cpf_16b="{cpf()}"')
 # arquivo 15 cria dois estabelecimentos + um profissional anônimo
 print(f'cnpj_15b="{cnpj()}"')
 print(f'cpf_15b="{cpf()}"')
