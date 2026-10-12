@@ -178,18 +178,33 @@ export default function BuscarHorarioScreen() {
    * Sincroniza as seleções com os params da rota quando eles mudam.
    * Padrão "ajustar estado no render" (react.dev): evita o efeito com
    * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   *
+   * A comparação é por VALOR: `useLocalSearchParams()` devolve um objeto
+   * novo a cada render, então comparar identidade (`!==`) nunca convergia
+   * e estourava "Too many re-renders".
    */
-  const [prevRouteParams, setPrevRouteParams] = useState(params);
+  const { professionalId: routeProfId, serviceId: routeServiceId } = params;
 
-  if (prevRouteParams !== params) {
-    setPrevRouteParams(params);
+  const [prevRouteParams, setPrevRouteParams] = useState({
+    professionalId: routeProfId,
+    serviceId: routeServiceId,
+  });
 
-    if (params.professionalId) {
-      setSelectedProfId(params.professionalId);
+  if (
+    prevRouteParams.professionalId !== routeProfId ||
+    prevRouteParams.serviceId !== routeServiceId
+  ) {
+    setPrevRouteParams({
+      professionalId: routeProfId,
+      serviceId: routeServiceId,
+    });
+
+    if (routeProfId) {
+      setSelectedProfId(routeProfId);
     }
 
-    if (params.serviceId) {
-      setSelectedServiceId(params.serviceId);
+    if (routeServiceId) {
+      setSelectedServiceId(routeServiceId);
     }
   }
 

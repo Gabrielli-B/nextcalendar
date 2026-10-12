@@ -1,6 +1,6 @@
 # 06 — Clientes: CRUD, validações e soft delete
 
-# ── 1. POST cliente → 201 (sem id no corpo) ─────────────────────────────────
+# ── 1. POST cliente → 201 (id retornado no corpo) ───────────────────────────
 POST {{baseUrl}}/api/v1/clients
 Content-Type: application/json
 {
@@ -12,18 +12,19 @@ Content-Type: application/json
   "notes": "Criado pela suíte E2E"
 }
 HTTP 201
+[Captures]
+e2e_client_id: jsonpath "$.id"
 [Asserts]
 jsonpath "$.name" == "E2E-Cliente-{{run_id}}"
 jsonpath "$.email" == "e2e06-{{run_id}}@e2e.test"
-jsonpath "$.id" not exists
+jsonpath "$.id" exists
 
-# ── 2. busca para capturar o id ─────────────────────────────────────────────
+# ── 2. busca confirma que o id capturado é o mesmo persistido ───────────────
 GET {{baseUrl}}/api/v1/clients/search?name=E2E-Cliente-{{run_id}}
 HTTP 200
-[Captures]
-e2e_client_id: jsonpath "$.content[0].id"
 [Asserts]
 jsonpath "$.totalElements" == 1
+jsonpath "$.content[0].id" == "{{e2e_client_id}}"
 jsonpath "$.content[0].name" == "E2E-Cliente-{{run_id}}"
 jsonpath "$.content[0].phone" == "51999990200"
 
