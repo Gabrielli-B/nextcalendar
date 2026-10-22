@@ -1,6 +1,32 @@
-# NextCalendar
+# 📅 NextCalendar — Sistema Integrado de Gestão e Agendamento
+
+## 🏛️ Dados Acadêmicos & Equipe
+
+| Campo | Informação |
+|-------|-----------|
+| **Instituição de Ensino Superior (IES)** | Faculdade/Universidade Unisinos |
+| **Empresa Parceira / Cliente** | Studio Vision, Gabriel e Barbara |
+| **Grupo** | Grupo 3 |
+
+**Integrantes:**
+- Fabio Leandro de Oliveira
+- Livia Freire Pinto
+- Gabrielli Borba e Oliveira
+- Pedro Mathias Da Silva Marcolino
+- Roberto Medeiros de Lima
+
+**Tecnologias Utilizadas:** Java 21 LTS, Spring Boot 3, Spring Security (JWT), Spring Data JPA, Hibernate, React Native, Expo Web (SDK 56), PostgreSQL 16, H2 Database e Docker.
+
+---
 
 Um projeto de calendário moderno desenvolvido com arquitetura de monorepo, separando frontend e backend para melhor manutenção e escalabilidade.
+
+## 🗄️ Modelo de Dados
+
+Consulte o Diagrama Entidade-Relacionamento (DER) completo: [📊 Diagrama do Banco de Dados](docs/modelo-dados.md)
+
+O modelo conta com **15 entidades** principais:
+`users` · `establishments` · `professionals` · `clients` · `services` · `products` · `professional_services` · `appointments` · `orders` · `orders_items` · `technical_sheets` · `technical_sheet_entries` · `technical_sheet_photos` · `photos` · `working_hours` · `blocked_times`
 
 ## 📋 Requisitos
 

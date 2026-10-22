@@ -1,9 +1,22 @@
+NEXTCALENDAR
+================================================================
+
+NOME DO PROJETO
+NextCalendar
+
+IDENTIFICAÇÃO DO GRUPO
+Grupo 3
 NextCalendar — Sistema Integrado de Gestão e Agendamento
 
 Dados Acadêmicos & Equipe
 Instituição de Ensino Superior (IES):  Faculdade/Universidade Unisinos
+<<<<<<< Updated upstream
 Empresa Parceira / Cliente: Studio Vision, Gabriel e Bárbara
 Integrantes do Grupo 3:
+=======
+Empresa Parceira / Cliente: Studio Vision, Gabriel e Barbara
+Integrantes do Grupo:
+>>>>>>> Stashed changes
   * Fabio Leandro de Oliveira
   * Livia Freire Pinto
   * Gabrielli Borba e Oliveira
@@ -37,3 +50,13 @@ oferece uma área restrita para o profissional gerenciar seus atendimentos,
 comandas e o histórico técnico dos clientes, e para o gestor administrar
 equipe, serviços e agenda. A solução é construída em React
 Native (frontend) e Spring Boot (backend).
+<<<<<<< Updated upstream
+=======
+
+INTEGRANTES DO GRUPO
+- Fábio Leandro Santos de Oliveira
+- Gabrielli Borba de Oliveira
+- Livia Freire Pinto
+- Pedro Mathias Da Silva Marcolino
+- Roberto Medeiros de Lima
+>>>>>>> Stashed changes
