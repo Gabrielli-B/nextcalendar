@@ -1,0 +1,30 @@
+Roteiro de Instalação e Execução
+Pré-requisitos
+Java JDK 21 LTS e Git
+
+Node.js 18+ e npm
+
+Docker Desktop (opcional, para execução com PostgreSQL em produção)
+
+1. Executando o Backend (Spring Boot)
+Abra o terminal na pasta do backend:
+cd backend
+
+# No Windows (Prompt de Comando):
+mvnw.cmd spring-boot:run
+
+# No Linux ou macOS:
+./mvnw spring-boot:run
+
+# Ou via Make:
+make backend-run
+
+2. Executando o Frontend (Expo Web)
+Abra outro terminal na pasta do frontend:
+cd frontend
+
+# Instalar dependências (se for a primeira vez):
+npm install
+
+# Iniciar o servidor Expo com cache limpo:
+npx expo start --clear
