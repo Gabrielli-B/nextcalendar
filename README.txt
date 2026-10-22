@@ -1,28 +1,16 @@
-NEXTCALENDAR
-================================================================
-
-NOME DO PROJETO
-NextCalendar
-
-IDENTIFICAÇÃO DO GRUPO
-Grupo 3
-NextCalendar — Sistema Integrado de Gestão e Agendamento
-
 Dados Acadêmicos & Equipe
 Instituição de Ensino Superior (IES):  Faculdade/Universidade Unisinos
-<<<<<<< Updated upstream
 Empresa Parceira / Cliente: Studio Vision, Gabriel e Bárbara
 Integrantes do Grupo 3:
-=======
-Empresa Parceira / Cliente: Studio Vision, Gabriel e Barbara
-Integrantes do Grupo:
->>>>>>> Stashed changes
   * Fabio Leandro de Oliveira
   * Livia Freire Pinto
   * Gabrielli Borba e Oliveira
   * Pedro Mathias Da Silva Marcolino
   * Roberto Medeiros de Lima
 
+Apresentação Final para a Banca:
+Arquivo no repositório: docs/apresentacao-final.pdf
+Link interativo (Canva): https://www.canva.com/design/DAHLLOjIgXU/As4qyHOqn66baGHIsbdTqA/edit
 Tecnologias Utilizadas: Java 21 LTS, Spring Boot 3, Spring Security (JWT), Spring Data JPA, Hibernate, React Native, Expo Web (SDK 56), PostgreSQL 16, H2 Database e Docker.
 Arquitetura do Monorepo
 
@@ -50,13 +38,4 @@ oferece uma área restrita para o profissional gerenciar seus atendimentos,
 comandas e o histórico técnico dos clientes, e para o gestor administrar
 equipe, serviços e agenda. A solução é construída em React
 Native (frontend) e Spring Boot (backend).
-<<<<<<< Updated upstream
-=======
 
-INTEGRANTES DO GRUPO
-- Fábio Leandro Santos de Oliveira
-- Gabrielli Borba de Oliveira
-- Livia Freire Pinto
-- Pedro Mathias Da Silva Marcolino
-- Roberto Medeiros de Lima
->>>>>>> Stashed changes
