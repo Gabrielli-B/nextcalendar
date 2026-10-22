@@ -26,6 +26,7 @@ nextcalendar/
 ├── docs/                 # Modelos de dados, protótipos e apresentação da banca
 └── docker-compose.yml    # Orquestração do PostgreSQL (API) e MongoDB (Agente)
 
+Protótipo Interativo (Figma): (https://www.figma.com/design/9PTnqWDmqBg1H6oLZfvjmZ/Next-calendar?node-id=203-797&t=ZfFPLf9qMO8Y8IPX-0)
 
 ESCOPO DA SOLUÇÃO
 O NextCalendar é uma solução multiplataforma (Android, iOS e Web) de
