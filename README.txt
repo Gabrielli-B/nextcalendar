@@ -11,6 +11,21 @@ Integrantes do Grupo 3:
   * Roberto Medeiros de Lima
 
 Tecnologias Utilizadas: Java 21 LTS, Spring Boot 3, Spring Security (JWT), Spring Data JPA, Hibernate, React Native, Expo Web (SDK 56), PostgreSQL 16, H2 Database e Docker.
+Arquitetura do Monorepo
+
+O repositório está estruturado em monorepo modular, separando responsabilidades:
+
+nextcalendar/
+├── backend/              # API REST principal em Spring Boot 3 / Java 21 LTS
+│   ├── src/              # Controladores, Entidades JPA, Services e Mappers
+│   ├── e2e/              # Suíte de testes automatizados ponta a ponta (HURL)
+│   └── README.md         # Documentação técnica detalhada dos endpoints
+├── frontend/             # Aplicação Web e Mobile do Gestor e Cliente (Expo / React Native)
+├── AgenteBarbearia/      # Microserviço de IA (.NET 10 + OpenAI GPT-4o-mini + Whisper)
+│   └── whatsapp-bridge/  # Ponte de integração WhatsApp (Node.js / Baileys)
+├── docs/                 # Modelos de dados, protótipos e apresentação da banca
+└── docker-compose.yml    # Orquestração do PostgreSQL (API) e MongoDB (Agente)
+
 
 ESCOPO DA SOLUÇÃO
 O NextCalendar é uma solução multiplataforma (Android, iOS e Web) de
