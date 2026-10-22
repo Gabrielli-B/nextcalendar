@@ -1,11 +1,16 @@
-NEXTCALENDAR
-================================================================
+NextCalendar — Sistema Integrado de Gestão e Agendamento
 
-NOME DO PROJETO
-NextCalendar
+Dados Acadêmicos & Equipe
+Instituição de Ensino Superior (IES):  Faculdade/Universidade Unisinos
+Empresa Parceira / Cliente: Studio Vision, Gabriel e Bárbara
+Integrantes do Grupo 3:
+  * Fabio Leandro de Oliveira
+  * Livia Freire Pinto
+  * Gabrielli Borba e Oliveira
+  * Pedro Mathias Da Silva Marcolino
+  * Roberto Medeiros de Lima
 
-IDENTIFICAÇÃO DO GRUPO
-Grupo 3
+Tecnologias Utilizadas: Java 21 LTS, Spring Boot 3, Spring Security (JWT), Spring Data JPA, Hibernate, React Native, Expo Web (SDK 56), PostgreSQL 16, H2 Database e Docker.
 
 ESCOPO DA SOLUÇÃO
 O NextCalendar é uma solução multiplataforma (Android, iOS e Web) de
@@ -16,10 +21,3 @@ oferece uma área restrita para o profissional gerenciar seus atendimentos,
 comandas e o histórico técnico dos clientes, e para o gestor administrar
 equipe, serviços e agenda. A solução é construída em React
 Native (frontend) e Spring Boot (backend).
-
-INTEGRANTES DO GRUPO
-- Fábio Leandro Santos de Oliveira
-- Gabrielli Borba de Oliveira
-- Livia Freire Pinto
-- Pedro Mathias Da Silva Marcolino
-- Roberto Medeiros de Lima
