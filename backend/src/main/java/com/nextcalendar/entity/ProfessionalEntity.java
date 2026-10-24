@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "professionals")
 @Getter
@@ -21,51 +20,52 @@ import java.util.UUID;
 @AllArgsConstructor
 
 public class ProfessionalEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
-    private UserEntity user;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "establishment_id", nullable = false)
-    private EstablishmentEntity establishment;
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "user_id")
+	private UserEntity user;
 
+	@ManyToOne
+	@JoinColumn(name = "establishment_id", nullable = false)
+	private EstablishmentEntity establishment;
 
-    @Column(nullable = false)
-    private String name;
+	@Column(nullable = false)
+	private String name;
 
-    private String nickname;
+	private String nickname;
 
-    @Column(length = 100)
-    private String specialty;
+	@Column(length = 100)
+	private String specialty;
 
-    @Column(nullable = false, unique = true)
-    private String cpf;
+	@Column(nullable = false, unique = true)
+	private String cpf;
 
+	@Column(nullable = false)
+	private String email;
 
-    @Column(nullable = false)
-    private String email;
+	private String password;
 
-    private String password;
+	private String phone;
 
-    private String phone;
-    private String gender;
-    private String photoUrl;
+	private String gender;
 
-    @Column(precision = 5, scale = 2)
-    private BigDecimal commission;
+	private String photoUrl;
 
-    private Boolean active;
+	@Column(precision = 5, scale = 2)
+	private BigDecimal commission;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	private Boolean active;
 
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
+	@UpdateTimestamp
+	@Column(nullable = false)
+	private LocalDateTime updatedAt;
 
 }

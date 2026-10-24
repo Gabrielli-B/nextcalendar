@@ -51,15 +51,25 @@ export function RescheduleModal({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Inicializa com a data do agendamento ao abrir
-  useEffect(() => {
+  /**
+   * Inicializa com a data do agendamento ao abrir e limpa a seleção de horário.
+   * Padrão "ajustar estado no render" (react.dev) em vez de efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   */
+  const [prevAppointment, setPrevAppointment] = useState(appointment);
+  const [prevVisible, setPrevVisible] = useState(visible);
+
+  if (appointment !== prevAppointment || visible !== prevVisible) {
+    setPrevAppointment(appointment);
+    setPrevVisible(visible);
+
     if (appointment?.startDateTime) {
       const d = appointment.startDateTime.slice(0, 10);
       setSelectedDate(d);
     }
     setSelectedSlot(null);
     setErrorMsg(null);
-  }, [appointment, visible]);
+  }
 
   // Carrega horários disponíveis quando a data ou agendamento muda
   useEffect(() => {

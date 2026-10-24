@@ -33,6 +33,11 @@ import {
 } from '@/services/professionalServices';
 
 import {
+  getProfessionalServiceLinks,
+  type ProfessionalServiceLink,
+} from '@/services/professionalServiceServices';
+
+import {
   listarServicos,
   type ServiceResponse,
 } from '@/services/serviceServices';
@@ -159,6 +164,11 @@ export default function BuscarHorarioScreen() {
   const [services, setServices] =
     useState<ServiceResponse[]>([]);
 
+  // Vínculos profissional ↔ serviço do estabelecimento
+  // (vazio = todos podem atender todos)
+  const [serviceLinks, setServiceLinks] =
+    useState<ProfessionalServiceLink[]>([]);
+
   const [loadingLists, setLoadingLists] =
     useState(true);
 
@@ -174,22 +184,39 @@ export default function BuscarHorarioScreen() {
       params.serviceId ?? ''
     );
 
-  useEffect(() => {
-    if (params.professionalId) {
-      setSelectedProfId(
-        params.professionalId
-      );
+  /**
+   * Sincroniza as seleções com os params da rota quando eles mudam.
+   * Padrão "ajustar estado no render" (react.dev): evita o efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   *
+   * A comparação é por VALOR: `useLocalSearchParams()` devolve um objeto
+   * novo a cada render, então comparar identidade (`!==`) nunca convergia
+   * e estourava "Too many re-renders".
+   */
+  const { professionalId: routeProfId, serviceId: routeServiceId } = params;
+
+  const [prevRouteParams, setPrevRouteParams] = useState({
+    professionalId: routeProfId,
+    serviceId: routeServiceId,
+  });
+
+  if (
+    prevRouteParams.professionalId !== routeProfId ||
+    prevRouteParams.serviceId !== routeServiceId
+  ) {
+    setPrevRouteParams({
+      professionalId: routeProfId,
+      serviceId: routeServiceId,
+    });
+
+    if (routeProfId) {
+      setSelectedProfId(routeProfId);
     }
 
-    if (params.serviceId) {
-      setSelectedServiceId(
-        params.serviceId
-      );
+    if (routeServiceId) {
+      setSelectedServiceId(routeServiceId);
     }
-  }, [
-    params.professionalId,
-    params.serviceId,
-  ]);
+  }
 
   const today = new Date();
 
@@ -276,7 +303,7 @@ export default function BuscarHorarioScreen() {
       setLoadingLists(true);
 
       try {
-        const [profs, svcs] =
+        const [profs, svcs, links] =
           await Promise.all([
             getActiveProfessionals(
               establishmentId,
@@ -284,10 +311,17 @@ export default function BuscarHorarioScreen() {
               100
             ),
             listarServicos(establishmentId),
+            getProfessionalServiceLinks(
+              establishmentId
+            ).catch(
+              () =>
+                [] as ProfessionalServiceLink[]
+            ),
           ]);
 
         setProfessionals(profs.content);
         setServices(svcs);
+        setServiceLinks(links);
       } catch {
         // Silencia ÔÇö o usu├írio ver├í
         // dropdowns vazios
@@ -664,6 +698,81 @@ export default function BuscarHorarioScreen() {
       s => s.id === selectedServiceId
     )?.name ?? '';
 
+  // ─── Filtragem por vínculo profissional ↔ serviço ──────────────────────
+  // Regra do backend (espelhada aqui): par liberado quando o profissional
+  // não tem vínculos, quando o serviço não tem vínculos, ou quando o par
+  // existe na tabela professional_services.
+
+  const linksByPro = new Map<
+    string,
+    Set<string>
+  >();
+  const linksByService = new Map<
+    string,
+    Set<string>
+  >();
+
+  for (const link of serviceLinks) {
+    let proSet =
+      linksByPro.get(link.professionalId);
+    if (!proSet) {
+      proSet = new Set();
+      linksByPro.set(
+        link.professionalId,
+        proSet
+      );
+    }
+    proSet.add(link.serviceId);
+
+    let svcSet =
+      linksByService.get(link.serviceId);
+    if (!svcSet) {
+      svcSet = new Set();
+      linksByService.set(
+        link.serviceId,
+        svcSet
+      );
+    }
+    svcSet.add(link.professionalId);
+  }
+
+  const isPairAllowed = (
+    professionalId: string,
+    serviceId: string
+  ) => {
+    const proSet =
+      linksByPro.get(professionalId);
+    if (!proSet || proSet.size === 0)
+      return true;
+
+    const svcSet =
+      linksByService.get(serviceId);
+    if (!svcSet || svcSet.size === 0)
+      return true;
+
+    return proSet.has(serviceId);
+  };
+
+  const allowedServices =
+    selectedProfId
+      ? services.filter(svc =>
+          isPairAllowed(
+            selectedProfId,
+            svc.id
+          )
+        )
+      : services;
+
+  const allowedProfessionals =
+    selectedServiceId
+      ? professionals.filter(prof =>
+          isPairAllowed(
+            prof.id,
+            selectedServiceId
+          )
+        )
+      : professionals;
+
   // ÔöÇÔöÇÔöÇ Render ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
   return (
@@ -765,7 +874,20 @@ export default function BuscarHorarioScreen() {
                     fontRegular,
                 },
               ]}>
-              Nenhum servi├ºo cadastrado.
+              Nenhum serviço cadastrado.
+            </Text>
+          ) : allowedServices.length ===
+            0 ? (
+            <Text
+              style={[
+                styles.emptyHint,
+                {
+                  fontFamily:
+                    fontRegular,
+                },
+              ]}>
+              Nenhum serviço disponível
+              com este profissional.
             </Text>
           ) : (
             <ScrollView
@@ -776,7 +898,7 @@ export default function BuscarHorarioScreen() {
               style={
                 styles.chipScroll
               }>
-              {services.map(
+              {allowedServices.map(
                 svc => (
                   <TouchableOpacity
                     key={svc.id}
@@ -865,6 +987,19 @@ export default function BuscarHorarioScreen() {
               ]}>
               Nenhum profissional ativo.
             </Text>
+          ) : allowedProfessionals
+              .length === 0 ? (
+            <Text
+              style={[
+                styles.emptyHint,
+                {
+                  fontFamily:
+                    fontRegular,
+                },
+              ]}>
+              Nenhum profissional atende
+              este serviço.
+            </Text>
           ) : (
             <ScrollView
               horizontal
@@ -874,7 +1009,7 @@ export default function BuscarHorarioScreen() {
               style={
                 styles.chipScroll
               }>
-              {professionals.map(
+              {allowedProfessionals.map(
                 prof => (
                   <TouchableOpacity
                     key={prof.id}

@@ -1,6 +1,7 @@
 package com.nextcalendar.entity;
 
 public enum OrderStatus {
-    OPEN,
-    CLOSED
+
+	OPEN, CLOSED, CANCELLED
+
 }

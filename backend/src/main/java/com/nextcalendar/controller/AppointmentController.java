@@ -19,55 +19,47 @@ import java.util.UUID;
 @RequestMapping("/api/v1/establishments/{establishmentId}/appointments")
 public class AppointmentController implements AppointmentApi {
 
-    private final AppointmentService appointmentService;
+	private final AppointmentService appointmentService;
 
-    public AppointmentController(AppointmentService appointmentService) {
-        this.appointmentService = appointmentService;
-    }
+	public AppointmentController(AppointmentService appointmentService) {
+		this.appointmentService = appointmentService;
+	}
 
-    @GetMapping("/available-slots")
-    public AvailableSlotsResponseDTO getAvailableSlots(
-            @PathVariable UUID establishmentId,
-            @RequestParam UUID professionalId,
-            @RequestParam UUID serviceId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-    ) {
-        return appointmentService.findAvailableSlots(establishmentId, professionalId, serviceId, date);
-    }
+	@GetMapping("/available-slots")
+	public AvailableSlotsResponseDTO getAvailableSlots(@PathVariable UUID establishmentId,
+			@RequestParam UUID professionalId, @RequestParam UUID serviceId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+		return appointmentService.findAvailableSlots(establishmentId, professionalId, serviceId, date);
+	}
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public AppointmentResponseDTO createAppointment(@PathVariable UUID establishmentId, @Valid @RequestBody AppointmentCreateDTO dto) {
-        return appointmentService.createAppointment(establishmentId, dto);
-    }
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public AppointmentResponseDTO createAppointment(@PathVariable UUID establishmentId,
+			@Valid @RequestBody AppointmentCreateDTO dto) {
+		return appointmentService.createAppointment(establishmentId, dto);
+	}
 
-    @PatchMapping("/{id}/cancel")
-    public AppointmentResponseDTO cancelAppointment(@PathVariable UUID establishmentId, @PathVariable UUID id) {
-        return appointmentService.cancelAppointment(id);
-    }
+	@PatchMapping("/{id}/cancel")
+	public AppointmentResponseDTO cancelAppointment(@PathVariable UUID establishmentId, @PathVariable UUID id) {
+		return appointmentService.cancelAppointment(id);
+	}
 
-    @PutMapping("/{id}/reschedule")
-    public AppointmentResponseDTO rescheduleAppointment(
-            @PathVariable UUID establishmentId,
-            @PathVariable UUID id,
-            @Valid @RequestBody AppointmentRescheduleDTO dto
-    ) {
-        return appointmentService.rescheduleAppointment(id, dto);
-    }
+	@PutMapping("/{id}/reschedule")
+	public AppointmentResponseDTO rescheduleAppointment(@PathVariable UUID establishmentId, @PathVariable UUID id,
+			@Valid @RequestBody AppointmentRescheduleDTO dto) {
+		return appointmentService.rescheduleAppointment(id, dto);
+	}
 
-    @GetMapping
-    public List<AppointmentResponseDTO> findByEstablishmentAndDate(
-            @PathVariable UUID establishmentId,
-            @RequestParam(required = false) UUID professionalId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
-    ) {
-        return appointmentService.findByEstablishmentAndDate(establishmentId, professionalId, date);
-    }
+	@GetMapping
+	public List<AppointmentResponseDTO> findByEstablishmentAndDate(@PathVariable UUID establishmentId,
+			@RequestParam(required = false) UUID professionalId,
+			@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+		return appointmentService.findByEstablishmentAndDate(establishmentId, professionalId, date);
+	}
 
-    @GetMapping("/client/{clientId}")
-    public List<AppointmentResponseDTO> findByClient(@PathVariable UUID establishmentId, @PathVariable UUID clientId) {
-        return appointmentService.findByClient(clientId);
-    }
+	@GetMapping("/client/{clientId}")
+	public List<AppointmentResponseDTO> findByClient(@PathVariable UUID establishmentId, @PathVariable UUID clientId) {
+		return appointmentService.findByClient(clientId);
+	}
 
 }
-

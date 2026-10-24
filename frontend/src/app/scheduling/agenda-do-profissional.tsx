@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircleIcon, ChevronLeftIcon, PlusIcon, XIcon } from '@/components/icons';
 import { Colors } from '@/constants/colors';
 import { useAppFonts } from '@/hooks/use-fonts';
-import { useAuth } from '@/context/AuthContext';
 import {
   getAgendaByDate,
   blockSlot,
@@ -53,7 +52,6 @@ export default function AgendaDoProfissionalScreen() {
   const { fontRegular, fontSemiBold, fontBold } = useAppFonts();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { token } = useAuth();
 
   const [viewMode, setViewMode] = useState<ViewMode>('Linha do tempo');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -66,6 +64,7 @@ export default function AgendaDoProfissionalScreen() {
   const [serviceName, setServiceName] = useState('');
   const [isEncaixe, setIsEncaixe] = useState(false);
   const [successModal, setSuccessModal] = useState<'cancel' | 'block' | null>(null);
+  const [errorModal, setErrorModal] = useState<string | null>(null);
 
   const weekStrip = useMemo(() => buildWeekStrip(selectedDate), [selectedDate]);
 
@@ -73,7 +72,7 @@ export default function AgendaDoProfissionalScreen() {
     let active = true;
     async function load() {
       setLoading(true);
-      const data = await getAgendaByDate(formatDateKey(selectedDate), token || undefined);
+      const data = await getAgendaByDate(formatDateKey(selectedDate));
       if (active) setSlots(data);
       setLoading(false);
     }
@@ -81,7 +80,7 @@ export default function AgendaDoProfissionalScreen() {
     return () => {
       active = false;
     };
-  }, [selectedDate, token]);
+  }, [selectedDate]);
 
   function handleSlotPress(slot: AgendaSlot) {
     setQuickActionSlot(slot);
@@ -97,42 +96,59 @@ export default function AgendaDoProfissionalScreen() {
 
   async function handleBlockSlot() {
     if (!quickActionSlot) return;
-    await blockSlot(quickActionSlot.id, token);
-    setSlots((prev) =>
-      prev.map((s) => (s.id === quickActionSlot.id ? { ...s, status: 'blocked' } : s))
-    );
-    setQuickActionSlot(null);
-    setSuccessModal('block');
+    try {
+      await blockSlot(quickActionSlot);
+      setSlots((prev) =>
+        prev.map((s) => (s.id === quickActionSlot.id ? { ...s, status: 'blocked' } : s))
+      );
+      setQuickActionSlot(null);
+      setSuccessModal('block');
+    } catch (err: any) {
+      setQuickActionSlot(null);
+      setErrorModal(err.response?.data ?? err.message ?? 'Não foi possível bloquear o horário.');
+    }
   }
 
   async function handleCancelAppointment() {
     if (!quickActionSlot) return;
-    await cancelAppointment(quickActionSlot.id, token);
-    setSlots((prev) =>
-      prev.map((s) =>
-        s.id === quickActionSlot.id
-          ? { ...s, status: 'free', clientName: undefined, service: undefined }
-          : s
-      )
-    );
-    setQuickActionSlot(null);
-    setSuccessModal('cancel');
+    try {
+      await cancelAppointment(quickActionSlot);
+      setSlots((prev) =>
+        prev.map((s) =>
+          s.id === quickActionSlot.id
+            ? { ...s, status: 'free', clientName: undefined, service: undefined, appointmentId: undefined }
+            : s
+        )
+      );
+      setQuickActionSlot(null);
+      setSuccessModal('cancel');
+    } catch (err: any) {
+      setQuickActionSlot(null);
+      setErrorModal(err.response?.data ?? err.message ?? 'Não foi possível cancelar o agendamento.');
+    }
   }
 
   async function handleCreateAppointment() {
     if (!newAppointmentSlot || !clientName || !serviceName) return;
-    await createAppointment(
-      { slotId: newAppointmentSlot.id, clientName, service: serviceName, isEncaixe },
-      token
-    );
-    setSlots((prev) =>
-      prev.map((s) =>
-        s.id === newAppointmentSlot.id
-          ? { ...s, status: isEncaixe ? 'encaixe' : 'confirmed', clientName, service: serviceName }
-          : s
-      )
-    );
-    setNewAppointmentSlot(null);
+    try {
+      await createAppointment({
+        slot: newAppointmentSlot,
+        clientName,
+        serviceName,
+        isEncaixe,
+      });
+      setSlots((prev) =>
+        prev.map((s) =>
+          s.id === newAppointmentSlot.id
+            ? { ...s, status: isEncaixe ? 'encaixe' : 'confirmed', clientName, service: serviceName }
+            : s
+        )
+      );
+      setNewAppointmentSlot(null);
+    } catch (err: any) {
+      setNewAppointmentSlot(null);
+      setErrorModal(err.response?.data ?? err.message ?? 'Não foi possível criar o agendamento.');
+    }
   }
 
   return (
@@ -218,7 +234,7 @@ export default function AgendaDoProfissionalScreen() {
       {viewMode !== 'Linha do tempo' ? (
         <View style={styles.placeholder}>
           <Text style={[styles.placeholderText, { fontFamily: fontRegular }]}>
-            Visão "{viewMode}" em breve.
+            Visão &quot;{viewMode}&quot; em breve.
           </Text>
         </View>
       ) : loading ? (
@@ -352,6 +368,21 @@ export default function AgendaDoProfissionalScreen() {
               disabled={!clientName || !serviceName}
               onPress={handleCreateAppointment}>
               <Text style={[styles.goldBtnText, { fontFamily: fontSemiBold }]}>Agendar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal visible={!!errorModal} transparent animationType="fade">
+        <View style={styles.overlay}>
+          <View style={styles.successCard}>
+            <Text style={[styles.successTitle, { fontFamily: fontBold }]}>Ops</Text>
+            <Text style={{ color: Colors.grey500, fontSize: 14, textAlign: 'center' }}>
+              {errorModal}
+            </Text>
+            <TouchableOpacity style={styles.goldBtn} onPress={() => setErrorModal(null)}>
+              <Text style={[styles.goldBtnText, { fontFamily: fontSemiBold }]}>Fechar</Text>
             </TouchableOpacity>
           </View>
         </View>

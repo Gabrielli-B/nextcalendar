@@ -13,11 +13,18 @@ import lombok.Setter;
 @AllArgsConstructor
 public class AddressEmbeddable {
 
-    private String cep;
-    private String street;
-    private String number;
-    private String complement;
-    private String neighborhood;
-    private String city;
-    private String state;
+	private String cep;
+
+	private String street;
+
+	private String number;
+
+	private String complement;
+
+	private String neighborhood;
+
+	private String city;
+
+	private String state;
+
 }

@@ -20,124 +20,137 @@ import java.util.UUID;
 
 @Service
 public class BlockedTimeService {
-    private final BlockedTimeRepository blockedTimeRepository;
-    private final ProfessionalRepository professionalRepository;
-    private final AppointmentRepository appointmentRepository;
-    private final com.nextcalendar.repository.WorkingHoursRepository workingHoursRepository;
-    private final BlockedTimeMapper blockedTimeMapper;
 
-    public BlockedTimeService(BlockedTimeRepository blockedTimeRepository,
-                              ProfessionalRepository professionalRepository,
-                              AppointmentRepository appointmentRepository,
-                              com.nextcalendar.repository.WorkingHoursRepository workingHoursRepository,
-                              BlockedTimeMapper blockedTimeMapper) {
-        this.blockedTimeRepository = blockedTimeRepository;
-        this.professionalRepository = professionalRepository;
-        this.appointmentRepository = appointmentRepository;
-        this.workingHoursRepository = workingHoursRepository;
-        this.blockedTimeMapper = blockedTimeMapper;
-    }
+	private final BlockedTimeRepository blockedTimeRepository;
 
-    private ProfessionalEntity findProfessional(UUID establishmentId, UUID professionalId) {
-        return professionalRepository.findByIdAndEstablishmentId(professionalId, establishmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Profissional", professionalId));
-    }
+	private final ProfessionalRepository professionalRepository;
 
-    private BlockedTimeEntity findBlockedTime(UUID id) {
-        return blockedTimeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Bloqueio de horário", id));
-    }
+	private final AppointmentRepository appointmentRepository;
 
-    @Transactional
-    public BlockedTimeResponseDTO create(UUID establishmentId, UUID professionalId, BlockedTimeCreateDTO dto) {
+	private final com.nextcalendar.repository.WorkingHoursRepository workingHoursRepository;
 
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
-                        .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Perfil de profissional não localizado."));
-                if (!myProf.getId().equals(professionalId)) {
-                    throw new org.springframework.security.access.AccessDeniedException("Profissionais só podem criar bloqueios para sua própria agenda.");
-                }
-            }
-        });
+	private final BlockedTimeMapper blockedTimeMapper;
 
-        ProfessionalEntity professional = findProfessional(establishmentId, professionalId);
+	public BlockedTimeService(BlockedTimeRepository blockedTimeRepository,
+			ProfessionalRepository professionalRepository, AppointmentRepository appointmentRepository,
+			com.nextcalendar.repository.WorkingHoursRepository workingHoursRepository,
+			BlockedTimeMapper blockedTimeMapper) {
+		this.blockedTimeRepository = blockedTimeRepository;
+		this.professionalRepository = professionalRepository;
+		this.appointmentRepository = appointmentRepository;
+		this.workingHoursRepository = workingHoursRepository;
+		this.blockedTimeMapper = blockedTimeMapper;
+	}
 
-        if (!dto.startDateTime().isBefore(dto.endDateTime())) {
-            throw new BusinessException("O horário de início deve ser anterior ao horário de término.");
-        }
+	private ProfessionalEntity findProfessional(UUID establishmentId, UUID professionalId) {
+		return professionalRepository.findByIdAndEstablishmentId(professionalId, establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Profissional", professionalId));
+	}
 
-        // Validação de expediente: o bloqueio deve estar dentro do horário de trabalho do profissional
-        com.nextcalendar.entity.WorkingHoursEntity workingHours = workingHoursRepository
-                .findByProfessionalIdAndDayOfWeekAndActiveTrue(professionalId, dto.startDateTime().getDayOfWeek())
-                .orElseThrow(() -> new BusinessException("O profissional não atende neste dia da semana (" + dto.startDateTime().getDayOfWeek() + ")."));
+	private BlockedTimeEntity findBlockedTime(UUID id) {
+		return blockedTimeRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("Bloqueio de horário", id));
+	}
 
-        java.time.LocalTime start = dto.startDateTime().toLocalTime();
-        java.time.LocalTime end = dto.endDateTime().toLocalTime();
+	@Transactional
+	public BlockedTimeResponseDTO create(UUID establishmentId, UUID professionalId, BlockedTimeCreateDTO dto) {
 
-        if (start.isBefore(workingHours.getStartTime()) || end.isAfter(workingHours.getEndTime())) {
-            throw new BusinessException("O horário do bloqueio deve estar dentro do expediente de trabalho cadastrado (" +
-                    workingHours.getStartTime() + " às " + workingHours.getEndTime() + ").");
-        }
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
+					.orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+							"Perfil de profissional não localizado."));
+				if (!myProf.getId().equals(professionalId)) {
+					throw new org.springframework.security.access.AccessDeniedException(
+							"Profissionais só podem criar bloqueios para sua própria agenda.");
+				}
+			}
+		});
 
-        // Não permite bloquear em cima de um agendamento já existente
-        List<AppointmentEntity> conflitosComAgendamento = appointmentRepository.findOverlapping(
-                professionalId, AppointmentStatus.CANCELLED, dto.startDateTime(), dto.endDateTime());
+		ProfessionalEntity professional = findProfessional(establishmentId, professionalId);
 
-        if (!conflitosComAgendamento.isEmpty()) {
-            throw new BusinessException(
-                    "Já existe um agendamento neste horário. Cancele ou reagende o cliente antes de bloquear.");
-        }
+		if (!dto.startDateTime().isBefore(dto.endDateTime())) {
+			throw new BusinessException("O horário de início deve ser anterior ao horário de término.");
+		}
 
-        // Não permite dois bloqueios sobrepostos
-        List<BlockedTimeEntity> conflitosComBloqueio = blockedTimeRepository
-                .findByProfessionalIdAndStartDateTimeLessThanAndEndDateTimeGreaterThan(
-                        professionalId, dto.endDateTime(), dto.startDateTime());
+		// Validação de expediente: o bloqueio deve estar dentro do horário de trabalho do
+		// profissional
+		com.nextcalendar.entity.WorkingHoursEntity workingHours = workingHoursRepository
+			.findByProfessionalIdAndDayOfWeekAndActiveTrue(professionalId, dto.startDateTime().getDayOfWeek())
+			.orElseThrow(() -> new BusinessException(
+					"O profissional não atende neste dia da semana (" + dto.startDateTime().getDayOfWeek() + ")."));
 
-        if (!conflitosComBloqueio.isEmpty()) {
-            throw new BusinessException("Já existe um bloqueio cadastrado neste horário.");
-        }
+		java.time.LocalTime start = dto.startDateTime().toLocalTime();
+		java.time.LocalTime end = dto.endDateTime().toLocalTime();
 
-        BlockedTimeEntity entity = blockedTimeMapper.toEntity(dto, professional);
-        BlockedTimeEntity saved = blockedTimeRepository.save(entity);
+		if (start.isBefore(workingHours.getStartTime()) || end.isAfter(workingHours.getEndTime())) {
+			throw new BusinessException("O horário do bloqueio deve estar dentro do expediente de trabalho cadastrado ("
+					+ workingHours.getStartTime() + " às " + workingHours.getEndTime() + ").");
+		}
 
-        return blockedTimeMapper.toResponseDTO(saved);
-    }
+		// Não permite bloquear em cima de um agendamento já existente
+		List<AppointmentEntity> conflitosComAgendamento = appointmentRepository.findOverlapping(professionalId,
+				AppointmentStatus.CANCELLED, dto.startDateTime(), dto.endDateTime());
 
-    @Transactional(readOnly = true)
-    public List<BlockedTimeResponseDTO> findByProfessional(UUID establishmentId, UUID professionalId) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
-                        .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Perfil de profissional não localizado."));
-                if (!myProf.getId().equals(professionalId)) {
-                    throw new org.springframework.security.access.AccessDeniedException("Profissionais só podem visualizar seus próprios bloqueios.");
-                }
-            }
-        });
+		if (!conflitosComAgendamento.isEmpty()) {
+			throw new BusinessException(
+					"Já existe um agendamento neste horário. Cancele ou reagende o cliente antes de bloquear.");
+		}
 
-        findProfessional(establishmentId, professionalId);
+		// Não permite dois bloqueios sobrepostos
+		List<BlockedTimeEntity> conflitosComBloqueio = blockedTimeRepository
+			.findByProfessionalIdAndStartDateTimeLessThanAndEndDateTimeGreaterThan(professionalId, dto.endDateTime(),
+					dto.startDateTime());
 
-        return blockedTimeRepository.findByProfessionalIdOrderByStartDateTimeAsc(professionalId)
-                .stream()
-                .map(blockedTimeMapper::toResponseDTO)
-                .toList();
-    }
+		if (!conflitosComBloqueio.isEmpty()) {
+			throw new BusinessException("Já existe um bloqueio cadastrado neste horário.");
+		}
 
-    @Transactional
-    public void delete(UUID id) {
-        BlockedTimeEntity entity = findBlockedTime(id);
+		BlockedTimeEntity entity = blockedTimeMapper.toEntity(dto, professional);
+		BlockedTimeEntity saved = blockedTimeRepository.save(entity);
 
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
-                        .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Perfil de profissional não localizado."));
-                if (!myProf.getId().equals(entity.getProfessional().getId())) {
-                    throw new org.springframework.security.access.AccessDeniedException("Profissionais só podem remover seus próprios bloqueios.");
-                }
-            }
-        });
+		return blockedTimeMapper.toResponseDTO(saved);
+	}
 
-        blockedTimeRepository.delete(entity);
-    }
+	@Transactional(readOnly = true)
+	public List<BlockedTimeResponseDTO> findByProfessional(UUID establishmentId, UUID professionalId) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
+					.orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+							"Perfil de profissional não localizado."));
+				if (!myProf.getId().equals(professionalId)) {
+					throw new org.springframework.security.access.AccessDeniedException(
+							"Profissionais só podem visualizar seus próprios bloqueios.");
+				}
+			}
+		});
+
+		findProfessional(establishmentId, professionalId);
+
+		return blockedTimeRepository.findByProfessionalIdOrderByStartDateTimeAsc(professionalId)
+			.stream()
+			.map(blockedTimeMapper::toResponseDTO)
+			.toList();
+	}
+
+	@Transactional
+	public void delete(UUID id) {
+		BlockedTimeEntity entity = findBlockedTime(id);
+
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				ProfessionalEntity myProf = professionalRepository.findByUserId(u.getId())
+					.orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+							"Perfil de profissional não localizado."));
+				if (!myProf.getId().equals(entity.getProfessional().getId())) {
+					throw new org.springframework.security.access.AccessDeniedException(
+							"Profissionais só podem remover seus próprios bloqueios.");
+				}
+			}
+		});
+
+		blockedTimeRepository.delete(entity);
+	}
+
 }

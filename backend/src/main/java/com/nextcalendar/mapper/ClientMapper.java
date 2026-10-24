@@ -8,39 +8,40 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClientMapper {
 
-    public ClientEntity toEntity(ClientCreateDTO dto){
-        ClientEntity client = new ClientEntity();
+	public ClientEntity toEntity(ClientCreateDTO dto) {
+		ClientEntity client = new ClientEntity();
 
-        client.setName(dto.name());
-        client.setPhone(dto.phone());
-        client.setEmail(dto.email());
-        client.setDateOfBirth(dto.dateOfBirth());
-        client.setPhotoUrl(dto.photoUrl());
-        client.setNotes(dto.notes());
-        client.setActive(true);
+		client.setName(dto.name());
+		client.setPhone(dto.phone());
+		client.setEmail(dto.email());
+		client.setDateOfBirth(dto.dateOfBirth());
+		client.setPhotoUrl(dto.photoUrl());
+		client.setNotes(dto.notes());
+		client.setActive(true);
 
-        return client;
-    }
+		return client;
+	}
 
-    public void updateEntity(ClientEntity client, ClientUpdateDTO dto){
+	public void updateEntity(ClientEntity client, ClientUpdateDTO dto) {
 
-        if(dto.name() != null && !dto.name().isEmpty()){
-            client.setName(dto.name());
-        }
-        if (dto.phone() != null && !dto.phone().isBlank()) {
-            client.setPhone(dto.phone());
-        }
+		if (dto.name() != null && !dto.name().isEmpty()) {
+			client.setName(dto.name());
+		}
+		if (dto.phone() != null && !dto.phone().isBlank()) {
+			client.setPhone(dto.phone());
+		}
 
-        if (dto.email() != null && !dto.email().isBlank()) {
-            client.setEmail(dto.email());
-        }
+		if (dto.email() != null && !dto.email().isBlank()) {
+			client.setEmail(dto.email());
+		}
 
-        if (dto.photoUrl() != null) {
-            client.setPhotoUrl(dto.photoUrl());
-        }
+		if (dto.photoUrl() != null) {
+			client.setPhotoUrl(dto.photoUrl());
+		}
 
-        if (dto.notes() != null) {
-            client.setNotes(dto.notes());
-        }
-    }
+		if (dto.notes() != null) {
+			client.setNotes(dto.notes());
+		}
+	}
+
 }

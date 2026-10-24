@@ -15,29 +15,31 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ProfileEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "establishment_id", nullable = false)
-    private EstablishmentEntity establishment;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "establishment_id", nullable = false)
+	private EstablishmentEntity establishment;
 
-    // Referência ao usuário dono (será FK para UserEntity quando o módulo de auth for criado)
-    @Column(nullable = false)
-    private UUID ownerId;
+	// Referência ao usuário dono (será FK para UserEntity quando o módulo de auth for
+	// criado)
+	@Column(nullable = false)
+	private UUID ownerId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private ProfileRole role;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 30)
+	private ProfileRole role;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
 
-    public enum ProfileRole {
-        GESTOR,
-        PROFESSIONAL,
-        RECEPTIONIST
-    }
+	public enum ProfileRole {
+
+		GESTOR, PROFESSIONAL, RECEPTIONIST
+
+	}
+
 }

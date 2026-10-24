@@ -19,94 +19,116 @@ import java.util.UUID;
 
 @Service
 public class ProductService {
-    private final ProductRepository productRepository;
 
-    private final EstablishmentRepository establishmentRepository;
+	private final ProductRepository productRepository;
 
-    private final ProductMapper productMapper;
+	private final EstablishmentRepository establishmentRepository;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper, EstablishmentRepository establishmentRepository) {
-        this.productRepository = productRepository;
-        this.establishmentRepository = establishmentRepository;
-        this.productMapper = productMapper;
-    }
+	private final ProductMapper productMapper;
 
-    private EstablishmentEntity findEstablishment(UUID establishmentId) {
-        return establishmentRepository.findById(establishmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
-    }
+	public ProductService(ProductRepository productRepository, ProductMapper productMapper,
+			EstablishmentRepository establishmentRepository) {
+		this.productRepository = productRepository;
+		this.establishmentRepository = establishmentRepository;
+		this.productMapper = productMapper;
+	}
 
-    @Transactional
-    public ProductMinResponseDTO createProduct(UUID establishmentId, ProductCreateDTO productDTO){
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+	private EstablishmentEntity findEstablishment(UUID establishmentId) {
+		return establishmentRepository.findById(establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
+	}
 
-        if(productRepository.existsByNameAndEstablishmentAndActiveTrue(productDTO.name(), establishment)){
-            throw new BusinessException("Já existe um produto com o nome "+productDTO.name()+" neste estabelecimento.");
-        }
+	@Transactional
+	public ProductMinResponseDTO createProduct(UUID establishmentId, ProductCreateDTO productDTO) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para cadastrar ou alterar produtos.");
+			}
+		});
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        ProductEntity inactiveProduct = productRepository
-                .findByNameAndEstablishmentAndActiveFalse(productDTO.name(), establishment)
-                .orElse(null);
+		if (productRepository.existsByNameAndEstablishmentAndActiveTrue(productDTO.name(), establishment)) {
+			throw new BusinessException(
+					"Já existe um produto com o nome " + productDTO.name() + " neste estabelecimento.");
+		}
 
-        if (inactiveProduct != null) {
-            productMapper.updateEntity(inactiveProduct, productDTO);
-            inactiveProduct.setActive(true);
+		ProductEntity inactiveProduct = productRepository
+			.findByNameAndEstablishmentAndActiveFalse(productDTO.name(), establishment)
+			.orElse(null);
 
-            ProductEntity reactivatedProduct = productRepository.save(inactiveProduct);
+		if (inactiveProduct != null) {
+			productMapper.updateEntity(inactiveProduct, productDTO);
+			inactiveProduct.setActive(true);
 
-            return new ProductMinResponseDTO(reactivatedProduct);
-        }
+			ProductEntity reactivatedProduct = productRepository.save(inactiveProduct);
 
-        ProductEntity product = productMapper.toEntity(productDTO, establishment);
-        ProductEntity savedProduct = productRepository.save(product);
+			return new ProductMinResponseDTO(reactivatedProduct);
+		}
 
-        return new ProductMinResponseDTO(savedProduct);
-    }
+		ProductEntity product = productMapper.toEntity(productDTO, establishment);
+		ProductEntity savedProduct = productRepository.save(product);
 
-    @Transactional
-    public ProductMinResponseDTO updateProduct(UUID establishmentId, UUID idProduct, ProductUpdateDTO productDTO){
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+		return new ProductMinResponseDTO(savedProduct);
+	}
 
-        ProductEntity productEntity = productRepository.findByIdAndEstablishmentAndActiveTrue(idProduct, establishment)
-                .orElseThrow(()->new EntityNotFoundException("Produto", idProduct));
+	@Transactional
+	public ProductMinResponseDTO updateProduct(UUID establishmentId, UUID idProduct, ProductUpdateDTO productDTO) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para cadastrar ou alterar produtos.");
+			}
+		});
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        if(productRepository.existsByNameAndEstablishmentAndActiveTrueAndIdNot(productDTO.name(), establishment, idProduct)){
-            throw new BusinessException("Já existe um produto com esse nome neste estabelecimento.");
-        }
+		ProductEntity productEntity = productRepository.findByIdAndEstablishmentAndActiveTrue(idProduct, establishment)
+			.orElseThrow(() -> new EntityNotFoundException("Produto", idProduct));
 
-        productMapper.updateEntity(productEntity, productDTO);
+		if (productRepository.existsByNameAndEstablishmentAndActiveTrueAndIdNot(productDTO.name(), establishment,
+				idProduct)) {
+			throw new BusinessException("Já existe um produto com esse nome neste estabelecimento.");
+		}
 
-        ProductEntity updatedProduct = productRepository.save(productEntity);
+		productMapper.updateEntity(productEntity, productDTO);
 
-        return new ProductMinResponseDTO(updatedProduct);
-    }
+		ProductEntity updatedProduct = productRepository.save(productEntity);
 
-    @Transactional(readOnly = true)
-    public Page<ProductMinResponseDTO> findProductsByName(String searchName, UUID establishmentId, Pageable pageable){
+		return new ProductMinResponseDTO(updatedProduct);
+	}
 
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+	@Transactional(readOnly = true)
+	public Page<ProductMinResponseDTO> findProductsByName(String searchName, UUID establishmentId, Pageable pageable) {
 
-        return productRepository.findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(establishment, searchName, pageable)
-                .map(ProductMinResponseDTO::new);
-    }
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
+		return productRepository
+			.findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(establishment, searchName, pageable)
+			.map(ProductMinResponseDTO::new);
+	}
 
-    @Transactional(readOnly = true)
-    public Page<ProductMinResponseDTO> findAllProducts(UUID establishmentId, Pageable pageable){
+	@Transactional(readOnly = true)
+	public Page<ProductMinResponseDTO> findAllProducts(UUID establishmentId, Pageable pageable) {
 
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        return productRepository.findByEstablishmentAndActiveTrue(establishment, pageable)
-                .map(ProductMinResponseDTO::new);
-    }
+		return productRepository.findByEstablishmentAndActiveTrue(establishment, pageable)
+			.map(ProductMinResponseDTO::new);
+	}
 
+	@Transactional
+	public void deleteProduct(UUID id) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para cadastrar ou alterar produtos.");
+			}
+		});
+		ProductEntity product = productRepository.findByIdAndActiveTrue(id)
+			.orElseThrow(() -> new EntityNotFoundException("Produto", id));
 
-    @Transactional
-    public void deleteProduct(UUID id){
-        ProductEntity product = productRepository.findByIdAndActiveTrue(id)
-                .orElseThrow(()->new EntityNotFoundException("Produto", id));
+		product.setActive(false);
+		productRepository.save(product);
+	}
 
-        product.setActive(false);
-        productRepository.save(product);
-    }
 }

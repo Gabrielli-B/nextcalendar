@@ -1,6 +1,5 @@
 package com.nextcalendar.service;
 
-
 import com.nextcalendar.dto.appointment.WorkingHoursCreateDTO;
 import com.nextcalendar.dto.appointment.WorkingHoursResponseDTO;
 import com.nextcalendar.dto.appointment.WorkingHoursUpdateDTO;
@@ -19,93 +18,100 @@ import java.util.UUID;
 
 @Service
 public class WorkingHoursService {
-    private final WorkingHoursRepository workingHoursRepository;
-    private final ProfessionalRepository professionalRepository;
-    private final WorkingHoursMapper workingHoursMapper;
 
-    public WorkingHoursService(WorkingHoursRepository workingHoursRepository,
-                               ProfessionalRepository professionalRepository,
-                               WorkingHoursMapper workingHoursMapper) {
-        this.workingHoursRepository = workingHoursRepository;
-        this.professionalRepository = professionalRepository;
-        this.workingHoursMapper = workingHoursMapper;
-    }
+	private final WorkingHoursRepository workingHoursRepository;
 
-    private ProfessionalEntity findProfessional(UUID establishmentId, UUID professionalId) {
-        return professionalRepository.findByIdAndEstablishmentId(professionalId, establishmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Profissional", professionalId));
-    }
+	private final ProfessionalRepository professionalRepository;
 
-    private WorkingHoursEntity findWorkingHours(UUID id) {
-        return workingHoursRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Horário de trabalho", id));
-    }
+	private final WorkingHoursMapper workingHoursMapper;
 
-    @Transactional
-    public WorkingHoursResponseDTO create(UUID establishmentId, UUID professionalId, WorkingHoursCreateDTO dto) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para definir horários de trabalho.");
-            }
-        });
-        ProfessionalEntity professional = findProfessional(establishmentId, professionalId);
+	public WorkingHoursService(WorkingHoursRepository workingHoursRepository,
+			ProfessionalRepository professionalRepository, WorkingHoursMapper workingHoursMapper) {
+		this.workingHoursRepository = workingHoursRepository;
+		this.professionalRepository = professionalRepository;
+		this.workingHoursMapper = workingHoursMapper;
+	}
 
-        if (workingHoursRepository.existsByProfessionalIdAndDayOfWeek(professionalId, dto.dayOfWeek())) {
-            throw new BusinessException(
-                    "Já existe um horário de trabalho cadastrado para " + dto.dayOfWeek() + " para este profissional.");
-        }
+	private ProfessionalEntity findProfessional(UUID establishmentId, UUID professionalId) {
+		return professionalRepository.findByIdAndEstablishmentId(professionalId, establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Profissional", professionalId));
+	}
 
-        if (!dto.startTime().isBefore(dto.endTime())) {
-            throw new BusinessException("O horário de início deve ser anterior ao horário de término.");
-        }
+	private WorkingHoursEntity findWorkingHours(UUID id) {
+		return workingHoursRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("Horário de trabalho", id));
+	}
 
-        WorkingHoursEntity entity = workingHoursMapper.toEntity(dto, professional);
-        WorkingHoursEntity saved = workingHoursRepository.save(entity);
+	@Transactional
+	public WorkingHoursResponseDTO create(UUID establishmentId, UUID professionalId, WorkingHoursCreateDTO dto) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para definir horários de trabalho.");
+			}
+		});
+		ProfessionalEntity professional = findProfessional(establishmentId, professionalId);
 
-        return new WorkingHoursResponseDTO(saved);
-    }
+		if (workingHoursRepository.existsByProfessionalIdAndDayOfWeek(professionalId, dto.dayOfWeek())) {
+			throw new BusinessException(
+					"Já existe um horário de trabalho cadastrado para " + dto.dayOfWeek() + " para este profissional.");
+		}
 
-    @Transactional
-    public WorkingHoursResponseDTO update(UUID establishmentId, UUID professionalId, UUID id, WorkingHoursUpdateDTO dto) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para alterar horários de trabalho.");
-            }
-        });
+		if (!dto.startTime().isBefore(dto.endTime())) {
+			throw new BusinessException("O horário de início deve ser anterior ao horário de término.");
+		}
 
-        findProfessional(establishmentId, professionalId);
-        WorkingHoursEntity entity = findWorkingHours(id);
+		WorkingHoursEntity entity = workingHoursMapper.toEntity(dto, professional);
+		WorkingHoursEntity saved = workingHoursRepository.save(entity);
 
-        if (dto.dayOfWeek() != null && !dto.dayOfWeek().equals(entity.getDayOfWeek())
-                && workingHoursRepository.existsByProfessionalIdAndDayOfWeek(professionalId, dto.dayOfWeek())) {
-            throw new BusinessException(
-                    "Já existe um horário de trabalho cadastrado para " + dto.dayOfWeek() + " para este profissional.");
-        }
+		return new WorkingHoursResponseDTO(saved);
+	}
 
-        workingHoursMapper.updateEntity(entity, dto);
+	@Transactional
+	public WorkingHoursResponseDTO update(UUID establishmentId, UUID professionalId, UUID id,
+			WorkingHoursUpdateDTO dto) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para alterar horários de trabalho.");
+			}
+		});
 
-        WorkingHoursEntity updated = workingHoursRepository.save(entity);
-        return new WorkingHoursResponseDTO(updated);
-    }
+		findProfessional(establishmentId, professionalId);
+		WorkingHoursEntity entity = findWorkingHours(id);
 
-    @Transactional(readOnly = true)
-    public List<WorkingHoursResponseDTO> findByProfessional(UUID establishmentId, UUID professionalId) {
-        findProfessional(establishmentId, professionalId);
+		if (dto.dayOfWeek() != null && !dto.dayOfWeek().equals(entity.getDayOfWeek())
+				&& workingHoursRepository.existsByProfessionalIdAndDayOfWeek(professionalId, dto.dayOfWeek())) {
+			throw new BusinessException(
+					"Já existe um horário de trabalho cadastrado para " + dto.dayOfWeek() + " para este profissional.");
+		}
 
-        return workingHoursRepository.findByProfessionalId(professionalId)
-                .stream()
-                .map(WorkingHoursResponseDTO::new)
-                .toList();
-    }
+		workingHoursMapper.updateEntity(entity, dto);
 
-    @Transactional
-    public void delete(UUID id) {
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para excluir horários de trabalho.");
-            }
-        });
-        WorkingHoursEntity entity = findWorkingHours(id);
-        workingHoursRepository.delete(entity);
-    }
+		WorkingHoursEntity updated = workingHoursRepository.save(entity);
+		return new WorkingHoursResponseDTO(updated);
+	}
+
+	@Transactional(readOnly = true)
+	public List<WorkingHoursResponseDTO> findByProfessional(UUID establishmentId, UUID professionalId) {
+		findProfessional(establishmentId, professionalId);
+
+		return workingHoursRepository.findByProfessionalId(professionalId)
+			.stream()
+			.map(WorkingHoursResponseDTO::new)
+			.toList();
+	}
+
+	@Transactional
+	public void delete(UUID id) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para excluir horários de trabalho.");
+			}
+		});
+		WorkingHoursEntity entity = findWorkingHours(id);
+		workingHoursRepository.delete(entity);
+	}
+
 }

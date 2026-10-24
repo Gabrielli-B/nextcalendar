@@ -19,28 +19,29 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TechnicalSheetEntryEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "technical_sheet_id", nullable = false)
-    private TechnicalSheetEntity technicalSheet;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "technical_sheet_id", nullable = false)
+	private TechnicalSheetEntity technicalSheet;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "appointment_id", nullable = false)
-    private AppointmentEntity appointment;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "appointment_id", nullable = false)
+	private AppointmentEntity appointment;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professional_id", nullable = false)
-    private ProfessionalEntity professional;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "professional_id", nullable = false)
+	private ProfessionalEntity professional;
 
-    @Column(columnDefinition = "TEXT")
-    private String notes;
+	@Column(columnDefinition = "TEXT")
+	private String notes;
 
-    @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TechnicalSheetPhotoEntity> photos = new ArrayList<>();
+	@OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<TechnicalSheetPhotoEntity> photos = new ArrayList<>();
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
 }

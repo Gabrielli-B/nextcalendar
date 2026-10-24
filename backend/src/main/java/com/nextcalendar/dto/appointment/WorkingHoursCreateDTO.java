@@ -5,17 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
-public record WorkingHoursCreateDTO(
-        @NotNull
-        DayOfWeek dayOfWeek,
+public record WorkingHoursCreateDTO(@NotNull DayOfWeek dayOfWeek,
 
-        @NotNull
-        LocalTime startTime,
+		@NotNull LocalTime startTime,
 
-        @NotNull
-        LocalTime endTime,
+		@NotNull LocalTime endTime,
 
-        LocalTime breakStart,
-        LocalTime breakEnd
-) {
+		LocalTime breakStart, LocalTime breakEnd) {
 }

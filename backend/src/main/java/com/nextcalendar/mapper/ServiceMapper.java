@@ -11,39 +11,34 @@ import java.util.Optional;
 @Component
 public class ServiceMapper {
 
-    public ServiceEntity toEntity(ServiceCreateDTO dto, EstablishmentEntity establishment) {
-        ServiceEntity service = new ServiceEntity();
+	public ServiceEntity toEntity(ServiceCreateDTO dto, EstablishmentEntity establishment) {
+		ServiceEntity service = new ServiceEntity();
 
-        service.setName(dto.name());
-        service.setPrice(dto.price());
-        service.setDuration(dto.duration());
-        service.setCategory(dto.category());
-        service.setEstablishment(establishment);
-        service.setActive(true);
+		service.setName(dto.name());
+		service.setPrice(dto.price());
+		service.setDuration(dto.duration());
+		service.setCategory(dto.category());
+		service.setEstablishment(establishment);
+		service.setActive(true);
 
-        return service;
-    }
+		return service;
+	}
 
-    public void updateEntity(ServiceEntity service, ServiceUpdateDTO dto) {
-        Optional.ofNullable(dto.name())
-                .filter(name -> !name.isBlank())
-                .ifPresent(service::setName);
+	public void updateEntity(ServiceEntity service, ServiceUpdateDTO dto) {
+		Optional.ofNullable(dto.name()).filter(name -> !name.isBlank()).ifPresent(service::setName);
 
-        Optional.ofNullable(dto.price())
-                .ifPresent(service::setPrice);
+		Optional.ofNullable(dto.price()).ifPresent(service::setPrice);
 
-        Optional.ofNullable(dto.duration())
-                .ifPresent(service::setDuration);
+		Optional.ofNullable(dto.duration()).ifPresent(service::setDuration);
 
-        Optional.ofNullable(dto.category())
-                .filter(category -> !category.isBlank())
-                .ifPresent(service::setCategory);
-    }
+		Optional.ofNullable(dto.category()).filter(category -> !category.isBlank()).ifPresent(service::setCategory);
+	}
 
-    public void updateEntity(ServiceEntity service, ServiceCreateDTO dto) {
-        service.setName(dto.name());
-        service.setPrice(dto.price());
-        service.setDuration(dto.duration());
-        service.setCategory(dto.category());
-    }
+	public void updateEntity(ServiceEntity service, ServiceCreateDTO dto) {
+		service.setName(dto.name());
+		service.setPrice(dto.price());
+		service.setDuration(dto.duration());
+		service.setCategory(dto.category());
+	}
+
 }

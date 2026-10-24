@@ -10,18 +10,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
-    Page<ProductEntity> findByEstablishmentAndActiveTrue(EstablishmentEntity establishment, Pageable pageable);
 
-    Page<ProductEntity> findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(EstablishmentEntity establishment, String name, Pageable pageable);
+	Page<ProductEntity> findByEstablishmentAndActiveTrue(EstablishmentEntity establishment, Pageable pageable);
 
-    Optional<ProductEntity> findByIdAndEstablishmentAndActiveTrue(UUID id, EstablishmentEntity establishment);
+	Page<ProductEntity> findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(EstablishmentEntity establishment,
+			String name, Pageable pageable);
 
-    Optional<ProductEntity> findByIdAndActiveTrue(UUID id);
+	Optional<ProductEntity> findByIdAndEstablishmentAndActiveTrue(UUID id, EstablishmentEntity establishment);
 
-    Optional<ProductEntity> findByNameAndEstablishmentAndActiveFalse(String name, EstablishmentEntity establishment);
+	Optional<ProductEntity> findByIdAndActiveTrue(UUID id);
 
-    boolean existsByNameAndEstablishmentAndActiveTrue(String name, EstablishmentEntity establishment);
+	Optional<ProductEntity> findByNameAndEstablishmentAndActiveFalse(String name, EstablishmentEntity establishment);
 
-    boolean existsByNameAndEstablishmentAndActiveTrueAndIdNot(String name, EstablishmentEntity establishment, UUID idProduct);
+	boolean existsByNameAndEstablishmentAndActiveTrue(String name, EstablishmentEntity establishment);
+
+	boolean existsByNameAndEstablishmentAndActiveTrueAndIdNot(String name, EstablishmentEntity establishment,
+			UUID idProduct);
 
 }

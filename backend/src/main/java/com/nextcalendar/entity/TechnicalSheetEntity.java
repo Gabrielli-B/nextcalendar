@@ -20,28 +20,28 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 
-
 public class TechnicalSheetEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
 
-    @OneToOne
-    @JoinColumn(name = "client_id", nullable = false, unique = true)
-    private ClientEntity client;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @Column(columnDefinition = "TEXT")
-    private String observations;
+	@OneToOne
+	@JoinColumn(name = "client_id", nullable = false, unique = true)
+	private ClientEntity client;
 
-    @OneToMany(mappedBy = "technicalSheet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TechnicalSheetEntryEntity> entries = new ArrayList<>();
+	@Column(columnDefinition = "TEXT")
+	private String observations;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@OneToMany(mappedBy = "technicalSheet", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<TechnicalSheetEntryEntity> entries = new ArrayList<>();
 
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
+	@UpdateTimestamp
+	@Column(nullable = false)
+	private LocalDateTime updatedAt;
 
 }

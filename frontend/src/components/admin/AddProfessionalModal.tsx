@@ -1,5 +1,5 @@
 import { isAxiosError } from 'axios';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -274,13 +274,42 @@ function JornadaTab({ establishmentId, professionalId, fontRegular, fontSemiBold
   const [editingId, setEditingId] = useState<string | null>(null);
   const [addingNew, setAddingNew] = useState(false);
 
+  /**
+   * Carga das jornadas.
+   *
+   * Toda a cadeia vive no efeito, com `setState` apenas em callbacks de
+   * promise e guarda `active` (`react-hooks/set-state-in-effect`).
+   */
+  useEffect(() => {
+    let active = true;
+
+    listWorkingHours(establishmentId, professionalId)
+      .then((data) => {
+        if (!active) return;
+        setHours(data);
+        setLoadError('');
+      })
+      .catch(() => {
+        if (!active) return;
+        setLoadError('Nao foi possivel carregar as jornadas.');
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [establishmentId, professionalId]);
+
+  /** Recarga disparada por event handlers (pode ligar o loading na hora). */
   async function load() {
     setLoading(true); setLoadError('');
-    try { const data = await listWorkingHours(establishmentId, professionalId); setHours(data); }
+    try { const data = await listWorkingHours(establishmentId, professionalId); setHours(data); setLoadError(''); }
     catch { setLoadError('Nao foi possivel carregar as jornadas.'); }
     finally { setLoading(false); }
   }
-  useEffect(() => { load(); }, []);
 
   /**
    * Cria ou atualiza múltiplos dias de uma só vez.
@@ -433,14 +462,26 @@ export function AddProfessionalModal({
   const [commission, setCommission] = useState('50');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const prevVisible = useRef(false);
 
   // Estado para o modal de senha temporária
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (visible && !prevVisible.current) {
+  function resetForm() { setName(''); setNickname(''); setSpecialty(''); setCpf(''); setPhone(''); setEmail(''); setCommission('50'); setError(''); }
+
+  /**
+   * Ao abrir o modal: pré-preenche (edição) ou limpa o formulário e volta
+   * para a aba de dados.
+   *
+   * Padrão "ajustar estado no render" (react.dev) em vez de efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   */
+  const [prevVisible, setPrevVisible] = useState(visible);
+
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
+
+    if (visible) {
       if (isEdit && professional) {
         setName(professional.name ?? '');
         setNickname(professional.nickname ?? '');
@@ -448,13 +489,12 @@ export function AddProfessionalModal({
         setPhone(formatPhone(professional.phone ?? ''));
         setEmail(professional.email ?? '');
         setCommission(String(professional.commission ?? 50));
-      } else { resetForm(); }
+      } else {
+        resetForm();
+      }
       setActiveTab('dados');
     }
-    prevVisible.current = visible;
-  }, [visible, isEdit, professional]);
-
-  function resetForm() { setName(''); setNickname(''); setSpecialty(''); setCpf(''); setPhone(''); setEmail(''); setCommission('50'); setError(''); }
+  }
 
   async function handleCreate() {
     // Validação: nome completo (mínimo nome + sobrenome)

@@ -1,6 +1,6 @@
 package com.nextcalendar.config;
 
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nextcalendar.repository.UserRepository;
 import com.nextcalendar.service.JwtService;
 import org.springframework.context.annotation.Bean;
@@ -14,49 +14,46 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
+	private final JwtService jwtService;
 
-    public SecurityConfig(JwtService jwtService, UserRepository userRepository, ObjectMapper objectMapper) {
-        this.jwtService = jwtService;
-        this.userRepository = userRepository;
-        this.objectMapper = objectMapper;
-    }
+	private final UserRepository userRepository;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	private final ObjectMapper objectMapper;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        MustChangePasswordFilter mustChangePasswordFilter =
-                new MustChangePasswordFilter(jwtService, userRepository, objectMapper);
-        JwtAuthenticationFilter jwtAuthFilter =
-                new JwtAuthenticationFilter(jwtService, userRepository);
+	public SecurityConfig(JwtService jwtService, UserRepository userRepository, ObjectMapper objectMapper) {
+		this.jwtService = jwtService;
+		this.userRepository = userRepository;
+		this.objectMapper = objectMapper;
+	}
 
-        http
-                .cors(org.springframework.security.config.Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers
-                        .frameOptions(frame -> frame.disable()) // necessário para o H2 Console
-                )
-                .authorizeHttpRequests(auth -> auth
-                        // Rotas públicas
-                        .requestMatchers(
-                                "/api/v1/auth/**",   // login e registro
-                                "/h2-console/**",    // console do banco em dev
-                                "/swagger-ui/**",    // Swagger UI
-                                "/v3/api-docs/**"    // OpenAPI docs
-                        ).permitAll()
-                        // Todas as outras liberadas para validação granular por filtros e services
-                        .anyRequest().permitAll()
-                )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(mustChangePasswordFilter, UsernamePasswordAuthenticationFilter.class);
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
-        return http.build();
-    }
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		MustChangePasswordFilter mustChangePasswordFilter = new MustChangePasswordFilter(jwtService, userRepository,
+				objectMapper);
+		JwtAuthenticationFilter jwtAuthFilter = new JwtAuthenticationFilter(jwtService, userRepository);
+
+		http.cors(org.springframework.security.config.Customizer.withDefaults())
+			.csrf(csrf -> csrf.disable())
+			.authorizeHttpRequests(auth -> auth
+				// Rotas públicas
+				.requestMatchers("/api/v1/auth/**", // login e registro
+						"/swagger-ui/**", // Swagger UI
+						"/v3/api-docs/**" // OpenAPI docs
+				)
+				.permitAll()
+				// Todas as outras liberadas para validação granular por filtros e
+				// services
+				.anyRequest()
+				.permitAll())
+			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterAfter(mustChangePasswordFilter, UsernamePasswordAuthenticationFilter.class);
+
+		return http.build();
+	}
+
 }
-

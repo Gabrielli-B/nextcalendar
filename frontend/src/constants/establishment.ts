@@ -4,14 +4,14 @@
  * edite frontend/.env e reinicie o Metro bundler com `npx expo start --clear`.
  *
  * O UUID deve bater com o inserido na migration do backend:
- *   backend/src/main/resources/db/migration/V1__seed_default_establishment.sql
+ *   backend/src/main/resources/db/migration/V3__seed_studio_vision.sql
  *
  * ATENÇÃO: o Expo lê variáveis EXPO_PUBLIC_* apenas do .env dentro da pasta
  * que contém o package.json do frontend (frontend/.env), não da raiz do monorepo.
  */
 
 /** UUID fixo do seed SQL — fonte da verdade para o ambiente de desenvolvimento. */
-const SEED_ESTABLISHMENT_ID = '11111111-1111-1111-1111-111111111111';
+const SEED_ESTABLISHMENT_ID = '99999999-9999-9999-9999-999999999999';
 
 export const DEFAULT_ESTABLISHMENT_ID: string =
   process.env.EXPO_PUBLIC_ESTABLISHMENT_ID || SEED_ESTABLISHMENT_ID;

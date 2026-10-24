@@ -15,34 +15,36 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/establishments/{establishmentId}/professionals/{professionalId}/working-hours")
 public class WorkingHoursController implements WorkingHoursApi {
-    private final WorkingHoursService workingHoursService;
 
-    public WorkingHoursController(WorkingHoursService workingHoursService) {
-        this.workingHoursService = workingHoursService;
-    }
+	private final WorkingHoursService workingHoursService;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public WorkingHoursResponseDTO create(
-            @PathVariable UUID establishmentId,
-            @PathVariable UUID professionalId,
-            @Valid @RequestBody WorkingHoursCreateDTO dto
-    ) {return workingHoursService.create(establishmentId, professionalId, dto);}
+	public WorkingHoursController(WorkingHoursService workingHoursService) {
+		this.workingHoursService = workingHoursService;
+	}
 
-    @PutMapping("/{id}")
-    public WorkingHoursResponseDTO update(
-            @PathVariable UUID establishmentId,
-            @PathVariable UUID professionalId,
-            @PathVariable UUID id,
-            @RequestBody WorkingHoursUpdateDTO dto
-    ) {return workingHoursService.update(establishmentId, professionalId, id, dto);}
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public WorkingHoursResponseDTO create(@PathVariable UUID establishmentId, @PathVariable UUID professionalId,
+			@Valid @RequestBody WorkingHoursCreateDTO dto) {
+		return workingHoursService.create(establishmentId, professionalId, dto);
+	}
 
-    @GetMapping
-    public List<WorkingHoursResponseDTO> findByProfessional(@PathVariable UUID establishmentId, @PathVariable UUID professionalId) {
-        return workingHoursService.findByProfessional(establishmentId, professionalId);
-    }
+	@PutMapping("/{id}")
+	public WorkingHoursResponseDTO update(@PathVariable UUID establishmentId, @PathVariable UUID professionalId,
+			@PathVariable UUID id, @RequestBody WorkingHoursUpdateDTO dto) {
+		return workingHoursService.update(establishmentId, professionalId, id, dto);
+	}
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {workingHoursService.delete(id);}
+	@GetMapping
+	public List<WorkingHoursResponseDTO> findByProfessional(@PathVariable UUID establishmentId,
+			@PathVariable UUID professionalId) {
+		return workingHoursService.findByProfessional(establishmentId, professionalId);
+	}
+
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable UUID id) {
+		workingHoursService.delete(id);
+	}
+
 }

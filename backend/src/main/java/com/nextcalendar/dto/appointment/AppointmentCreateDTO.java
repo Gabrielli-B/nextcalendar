@@ -7,21 +7,17 @@ import java.util.UUID;
 
 public record AppointmentCreateDTO(
 
-        @NotNull(message = "O profissional é obrigatório")
-        UUID professionalId,
+		@NotNull(message = "O profissional é obrigatório") UUID professionalId,
 
-        @NotNull(message = "O serviço é obrigatório")
-        UUID serviceId,
+		@NotNull(message = "O serviço é obrigatório") UUID serviceId,
 
-        UUID clientId,
+		UUID clientId,
 
-        String clientNameFallback,
-        String clientPhoneFallback,
+		String clientNameFallback, String clientPhoneFallback,
 
-        @NotNull(message = "A data e horário do agendamento são obrigatórios")
-        LocalDateTime startDateTime,
+		@NotNull(message = "A data e horário do agendamento são obrigatórios") LocalDateTime startDateTime,
 
-        Boolean isFitIn,
+		Boolean isFitIn,
 
-        String notes
-) { }
+		String notes) {
+}

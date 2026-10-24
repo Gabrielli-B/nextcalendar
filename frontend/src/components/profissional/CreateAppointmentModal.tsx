@@ -57,7 +57,8 @@ export function CreateAppointmentModal({
   // Serviços
   const [services, setServices] = useState<ServiceResponse[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
-  const [loadingServices, setLoadingServices] = useState(false);
+  /** Fecha a carga de serviços da sessão atual do modal (sucesso ou falha). */
+  const [servicesLoaded, setServicesLoaded] = useState(false);
 
   // Data
   const [selectedDate, setSelectedDate] = useState<string>(() => {
@@ -82,8 +83,18 @@ export function CreateAppointmentModal({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Reset ao abrir
-  useEffect(() => {
+  /**
+   * Reset ao abrir.
+   * Padrão "ajustar estado no render" (react.dev) em vez de efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   */
+  const [prevVisible, setPrevVisible] = useState(visible);
+  const [prevDefaultDate, setPrevDefaultDate] = useState(defaultDate);
+
+  if (visible !== prevVisible || defaultDate !== prevDefaultDate) {
+    setPrevVisible(visible);
+    setPrevDefaultDate(defaultDate);
+
     if (visible) {
       if (defaultDate) setSelectedDate(defaultDate);
       setSelectedSlot(null);
@@ -91,15 +102,29 @@ export function CreateAppointmentModal({
       setNotes('');
       setIsFitIn(false);
     }
-  }, [visible, defaultDate]);
+  }
 
-  // Carrega serviços
+  /**
+   * Carrega serviços.
+   *
+   * `loadingServices` é derivado (`visible && !servicesLoaded`): o estado
+   * só muda após o `await`, nunca de forma síncrona no efeito
+   * (`react-hooks/set-state-in-effect`). O flag é rearmed no fechamento
+   * (padrão "ajustar estado no render") para recarregar a cada abertura.
+   */
+  const loadingServices = visible && !servicesLoaded;
+
+  const [prevVisibleServices, setPrevVisibleServices] = useState(visible);
+  if (visible !== prevVisibleServices) {
+    setPrevVisibleServices(visible);
+    if (!visible) setServicesLoaded(false);
+  }
+
   useEffect(() => {
     if (!visible || !establishmentId) return;
 
     let active = true;
     async function load() {
-      setLoadingServices(true);
       try {
         const list = await listarServicos(establishmentId);
         if (active) {
@@ -111,7 +136,7 @@ export function CreateAppointmentModal({
       } catch {
         // Silencia
       } finally {
-        if (active) setLoadingServices(false);
+        if (active) setServicesLoaded(true);
       }
     }
     load();
@@ -120,10 +145,21 @@ export function CreateAppointmentModal({
     };
   }, [visible, establishmentId]);
 
+  /**
+   * Resultados exibidos.
+   *
+   * Derivados do contexto da busca: fora do modo "registered" ou com query
+   * curta, nada é exibido — assim não é preciso limpar `searchResults` com
+   * `setState` síncrono no efeito (`react-hooks/set-state-in-effect`).
+   */
+  const visibleSearchResults =
+    clientType === 'registered' && searchQuery.trim().length >= 2
+      ? searchResults
+      : [];
+
   // Busca de clientes cadastrados
   useEffect(() => {
     if (clientType !== 'registered' || searchQuery.trim().length < 2) {
-      setSearchResults([]);
       return;
     }
 
@@ -330,9 +366,9 @@ export function CreateAppointmentModal({
                       {searchingClient && <ActivityIndicator size="small" color={Colors.gold} />}
                     </View>
 
-                    {searchResults.length > 0 && (
+                    {visibleSearchResults.length > 0 && (
                       <View style={styles.resultsList}>
-                        {searchResults.map((c) => (
+                        {visibleSearchResults.map((c) => (
                           <TouchableOpacity
                             key={c.id}
                             style={styles.resultItem}

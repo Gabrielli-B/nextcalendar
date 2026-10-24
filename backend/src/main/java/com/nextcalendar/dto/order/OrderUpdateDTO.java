@@ -7,8 +7,7 @@ import java.math.BigDecimal;
 
 public record OrderUpdateDTO(
 
-        @PositiveOrZero(message = "O desconto não pode ser negativo.")
-        BigDecimal discountAmount,
+		@PositiveOrZero(message = "O desconto não pode ser negativo.") BigDecimal discountAmount,
 
-        PaymentMethod paymentMethod
-) {}
+		PaymentMethod paymentMethod) {
+}

@@ -10,39 +10,35 @@ import java.util.Optional;
 
 @Component
 public class ProductMapper {
-    public ProductEntity toEntity(ProductCreateDTO dto, EstablishmentEntity establishment) {
-        ProductEntity product = new ProductEntity();
 
-        product.setName(dto.name());
-        product.setCategory(dto.category());
-        product.setPrice(dto.price());
-        product.setStockQuantity(dto.stockQuantity());
-        product.setEstablishment(establishment);
-        product.setActive(true);
+	public ProductEntity toEntity(ProductCreateDTO dto, EstablishmentEntity establishment) {
+		ProductEntity product = new ProductEntity();
 
-        return product;
-    }
+		product.setName(dto.name());
+		product.setCategory(dto.category());
+		product.setPrice(dto.price());
+		product.setStockQuantity(dto.stockQuantity());
+		product.setEstablishment(establishment);
+		product.setActive(true);
 
-    public void updateEntity(ProductEntity product, ProductUpdateDTO dto) {
-        Optional.ofNullable(dto.name())
-                .filter(name -> !name.isBlank())
-                .ifPresent(product::setName);
+		return product;
+	}
 
-        Optional.ofNullable(dto.category())
-                .filter(category -> !category.isBlank())
-                .ifPresent(product::setCategory);
+	public void updateEntity(ProductEntity product, ProductUpdateDTO dto) {
+		Optional.ofNullable(dto.name()).filter(name -> !name.isBlank()).ifPresent(product::setName);
 
-        Optional.ofNullable(dto.price())
-                .ifPresent(product::setPrice);
+		Optional.ofNullable(dto.category()).filter(category -> !category.isBlank()).ifPresent(product::setCategory);
 
-        Optional.ofNullable(dto.stockQuantity())
-                .ifPresent(product::setStockQuantity);
-    }
+		Optional.ofNullable(dto.price()).ifPresent(product::setPrice);
 
-    public void updateEntity(ProductEntity product, ProductCreateDTO dto) {
-        product.setName(dto.name());
-        product.setCategory(dto.category());
-        product.setPrice(dto.price());
-        product.setStockQuantity(dto.stockQuantity());
-    }
+		Optional.ofNullable(dto.stockQuantity()).ifPresent(product::setStockQuantity);
+	}
+
+	public void updateEntity(ProductEntity product, ProductCreateDTO dto) {
+		product.setName(dto.name());
+		product.setCategory(dto.category());
+		product.setPrice(dto.price());
+		product.setStockQuantity(dto.stockQuantity());
+	}
+
 }

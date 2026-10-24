@@ -8,7 +8,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface TechnicalSheetRepository extends JpaRepository<TechnicalSheetEntity, UUID> {
-    Optional<TechnicalSheetEntity> findByClient(ClientEntity client);
 
-    Optional<TechnicalSheetEntity> findByClientId(UUID clientId);
+	Optional<TechnicalSheetEntity> findByClient(ClientEntity client);
+
+	Optional<TechnicalSheetEntity> findByClientId(UUID clientId);
+
 }

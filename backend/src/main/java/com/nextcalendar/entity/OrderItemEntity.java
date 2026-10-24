@@ -19,36 +19,37 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrderItemEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false)
-    private OrderEntity order;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "order_id", nullable = false)
+	private OrderEntity order;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderItemType itemType;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private OrderItemType itemType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id")
-    private ServiceEntity service;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "service_id")
+	private ServiceEntity service;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private ProductEntity product;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "product_id")
+	private ProductEntity product;
 
-    @Column(nullable = false)
-    private String name;
+	@Column(nullable = false)
+	private String name;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal unitPrice;
+	@Column(nullable = false, precision = 10, scale = 2)
+	private BigDecimal unitPrice;
 
-    @Column(nullable = false)
-    private Integer quantity;
+	@Column(nullable = false)
+	private Integer quantity;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@CreationTimestamp
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
 }

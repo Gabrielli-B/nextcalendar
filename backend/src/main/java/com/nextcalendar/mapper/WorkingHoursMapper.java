@@ -9,43 +9,44 @@ import org.springframework.stereotype.Component;
 @Component
 public class WorkingHoursMapper {
 
-    public WorkingHoursEntity toEntity(WorkingHoursCreateDTO dto, ProfessionalEntity professional) {
-        WorkingHoursEntity entity = new WorkingHoursEntity();
+	public WorkingHoursEntity toEntity(WorkingHoursCreateDTO dto, ProfessionalEntity professional) {
+		WorkingHoursEntity entity = new WorkingHoursEntity();
 
-        entity.setProfessional(professional);
-        entity.setDayOfWeek(dto.dayOfWeek());
-        entity.setStartTime(dto.startTime());
-        entity.setEndTime(dto.endTime());
-        entity.setBreakStart(dto.breakStart());
-        entity.setBreakEnd(dto.breakEnd());
-        entity.setActive(true);
+		entity.setProfessional(professional);
+		entity.setDayOfWeek(dto.dayOfWeek());
+		entity.setStartTime(dto.startTime());
+		entity.setEndTime(dto.endTime());
+		entity.setBreakStart(dto.breakStart());
+		entity.setBreakEnd(dto.breakEnd());
+		entity.setActive(true);
 
-        return entity;
-    }
+		return entity;
+	}
 
-    public void updateEntity(WorkingHoursEntity entity, WorkingHoursUpdateDTO dto) {
-        if (dto.dayOfWeek() != null){
-            entity.setDayOfWeek(dto.dayOfWeek());
-        }
+	public void updateEntity(WorkingHoursEntity entity, WorkingHoursUpdateDTO dto) {
+		if (dto.dayOfWeek() != null) {
+			entity.setDayOfWeek(dto.dayOfWeek());
+		}
 
-        if (dto.startTime() != null){
-            entity.setStartTime(dto.startTime());
-        }
+		if (dto.startTime() != null) {
+			entity.setStartTime(dto.startTime());
+		}
 
-        if (dto.endTime() != null){
-            entity.setEndTime(dto.endTime());
-        }
+		if (dto.endTime() != null) {
+			entity.setEndTime(dto.endTime());
+		}
 
-        if (dto.breakStart() != null){
-            entity.setBreakStart(dto.breakStart());
-        }
+		if (dto.breakStart() != null) {
+			entity.setBreakStart(dto.breakStart());
+		}
 
-        if (dto.breakEnd() != null){
-            entity.setBreakEnd(dto.breakEnd());
-        }
+		if (dto.breakEnd() != null) {
+			entity.setBreakEnd(dto.breakEnd());
+		}
 
-        if (dto.active() != null){
-            entity.setActive(dto.active());
-        }
-    }
+		if (dto.active() != null) {
+			entity.setActive(dto.active());
+		}
+	}
+
 }

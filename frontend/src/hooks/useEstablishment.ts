@@ -10,33 +10,54 @@ import { getEstablishmentByOwner } from '@/services/establishmentServices';
 export function useEstablishment() {
   const { user } = useAuth();
 
-  const [establishmentId, setEstablishmentId] = useState<string>('');
-  const [establishmentName, setEstablishmentName] = useState<string>('Minha Barbearia');
-  const [loading, setLoading] = useState(true);
+  const [establishment, setEstablishment] = useState<{ id: string; name: string } | null>(null);
+  /** `user.id` da última tentativa concluída (sucesso ou falha). */
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
-  const loadEstablishment = useCallback(async () => {
-    if (!user?.id) {
-      setEstablishmentId('');
-      setEstablishmentName('Minha Barbearia');
-      setLoading(false);
-      return;
-    }
-    try {
-      const est = await getEstablishmentByOwner(user.id);
-      setEstablishmentId(est.id);
-      setEstablishmentName(est.name || 'Minha Barbearia');
-    } catch (error) {
-      console.error('[ESTABLISHMENT] Erro ao carregar estabelecimento:', error);
-      setEstablishmentId('');
-      setEstablishmentName('Minha Barbearia');
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
+  /**
+   * `loading` é derivado do estado de dados: enquanto o usuário logado ainda
+   * não teve sua tentativa concluída, está carregando. Assim nenhum `setState`
+   * acontece de forma síncrona no efeito (`react-hooks/set-state-in-effect`).
+   */
+  const loading = !!user?.id && loadedFor !== user.id;
 
   useEffect(() => {
-    loadEstablishment();
-  }, [loadEstablishment]);
+    if (!user?.id) return;
 
-  return { establishmentId, establishmentName, loading, reload: loadEstablishment };
+    const userId = user.id;
+    let active = true;
+
+    getEstablishmentByOwner(userId)
+      .then((est) => {
+        if (!active) return;
+        setEstablishment({ id: est.id, name: est.name || 'Minha Barbearia' });
+      })
+      .catch((error) => {
+        if (!active) return;
+        console.error('[ESTABLISHMENT] Erro ao carregar estabelecimento:', error);
+        setEstablishment(null);
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoadedFor(userId);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.id, reloadToken]);
+
+  /** Recarga manual, disparada por event handlers (ex.: pull-to-refresh). */
+  const reload = useCallback(() => {
+    setLoadedFor(null);
+    setReloadToken((token) => token + 1);
+  }, []);
+
+  return {
+    establishmentId: user?.id ? establishment?.id ?? '' : '',
+    establishmentName: user?.id ? establishment?.name ?? 'Minha Barbearia' : 'Minha Barbearia',
+    loading,
+    reload,
+  };
 }

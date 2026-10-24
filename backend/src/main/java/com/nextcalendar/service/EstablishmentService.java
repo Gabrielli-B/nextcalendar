@@ -15,6 +15,7 @@ import com.nextcalendar.exception.EntityNotFoundException;
 import com.nextcalendar.mapper.EstablishmentMapper;
 import com.nextcalendar.repository.EstablishmentRepository;
 import com.nextcalendar.repository.ProfileRepository;
+import com.nextcalendar.validation.CnpjValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,246 +28,230 @@ import java.util.UUID;
 @Service
 public class EstablishmentService {
 
-    private static final Logger log = LoggerFactory.getLogger(EstablishmentService.class);
-    private static final int TRIAL_DAYS = 30;
+	private static final Logger log = LoggerFactory.getLogger(EstablishmentService.class);
 
-    private final EstablishmentRepository establishmentRepository;
-    private final ProfileRepository profileRepository;
-    private final ViaCepService viaCepService;
+	private static final int TRIAL_DAYS = 30;
 
-    public EstablishmentService(
-            EstablishmentRepository establishmentRepository,
-            ProfileRepository profileRepository,
-            ViaCepService viaCepService
-    ) {
-        this.establishmentRepository = establishmentRepository;
-        this.profileRepository = profileRepository;
-        this.viaCepService = viaCepService;
-    }
+	private final EstablishmentRepository establishmentRepository;
 
-    // ------------------------------------------------------------------ UC01
+	private final ProfileRepository profileRepository;
 
-    /**
-     * UC01 — Cadastrar Estabelecimento.
-     *
-     * Fluxo principal:
-     *  1. Valida termos de uso (pré-condição da UI, mas revalidado no back)
-     *  2. Normaliza e valida CNPJ (formato + duplicidade → 409)
-     *  3. Consulta ViaCEP para preencher o endereço (→ 422 se inválido)
-     *  4. Cria o Establishment com trial de 30 dias
-     *  5. Cria o Profile GESTOR do ownerId (regra de consistência)
-     */
-    @Transactional
-    public EstablishmentResponseDTO createEstablishment(EstablishmentCreateDTO dto) {
+	private final ViaCepService viaCepService;
 
-        // Passo 1 — Termos de uso (regra de negócio)
-        if (!Boolean.TRUE.equals(dto.termsAccepted())) {
-            throw new BusinessException("Os termos de uso devem ser aceitos para criar o estabelecimento.");
-        }
+	public EstablishmentService(EstablishmentRepository establishmentRepository, ProfileRepository profileRepository,
+			ViaCepService viaCepService) {
+		this.establishmentRepository = establishmentRepository;
+		this.profileRepository = profileRepository;
+		this.viaCepService = viaCepService;
+	}
 
-        // Passo 2 — Valida CNPJ
-        String cnpjNormalizado = normalizarCnpj(dto.cnpj());
+	// ------------------------------------------------------------------ UC01
 
-        // UC01 2a — CNPJ duplicado → 409
-        if (establishmentRepository.existsByCnpj(cnpjNormalizado)) {
-            throw new DuplicateResourceException(
-                    "CNPJ '" + dto.cnpj() + "' já está cadastrado no sistema."
-            );
-        }
+	/**
+	 * UC01 — Cadastrar Estabelecimento.
+	 *
+	 * Fluxo principal: 1. Valida termos de uso (pré-condição da UI, mas revalidado no
+	 * back) 2. Normaliza e valida CNPJ (formato + duplicidade → 409) 3. Consulta ViaCEP
+	 * para preencher o endereço (→ 422 se inválido) 4. Cria o Establishment com trial de
+	 * 30 dias 5. Cria o Profile GESTOR do ownerId (regra de consistência)
+	 */
+	@Transactional
+	public EstablishmentResponseDTO createEstablishment(EstablishmentCreateDTO dto) {
 
-        // Passo 3 — Consulta CEP via ViaCEP (lança CepInvalidException se inválido)
-        AddressCreateDTO addressDto = dto.address();
-        AddressEmbeddable address = viaCepService.buscarEPreencherEndereco(
-                addressDto.cep(),
-                addressDto.number(),
-                addressDto.complement()
-        );
+		// Passo 1 — Termos de uso (regra de negócio)
+		if (!Boolean.TRUE.equals(dto.termsAccepted())) {
+			throw new BusinessException("Os termos de uso devem ser aceitos para criar o estabelecimento.");
+		}
 
-        // UC01 6b — API indisponível: usa dados manuais enviados pelo frontend
-        if (address == null) {
-            address = buildManualAddress(addressDto);
-        }
+		// Passo 2 — Valida CNPJ
+		String cnpjNormalizado = normalizarCnpj(dto.cnpj());
 
-        // Passo 4 — Monta e salva o Establishment
-        EstablishmentEntity entity = EstablishmentMapper.toEntity(dto);
-        entity.setCnpj(cnpjNormalizado);
-        entity.setAddress(address);
+		// UC01 2a — CNPJ duplicado → 409
+		if (establishmentRepository.existsByCnpj(cnpjNormalizado)) {
+			throw new DuplicateResourceException("CNPJ '" + dto.cnpj() + "' já está cadastrado no sistema.");
+		}
 
-        // Regra: TermsOfUse.Accepted = true para persistir
-        entity.setTermsAccepted(true);
-        entity.setTermsAcceptedAt(LocalDateTime.now());
+		// Passo 3 — Consulta CEP via ViaCEP (lança CepInvalidException se inválido)
+		AddressCreateDTO addressDto = dto.address();
+		AddressEmbeddable address = viaCepService.buscarEPreencherEndereco(addressDto.cep(), addressDto.number(),
+				addressDto.complement());
 
-        // Regra: TrialPeriod iniciado automaticamente (30 dias)
-        LocalDateTime now = LocalDateTime.now();
-        entity.setTrialStartDate(now);
-        entity.setTrialEndDate(now.plusDays(TRIAL_DAYS));
+		// UC01 6b — API indisponível: usa dados manuais enviados pelo frontend
+		if (address == null) {
+			address = buildManualAddress(addressDto);
+		}
 
-        EstablishmentEntity saved = establishmentRepository.save(entity);
+		// Passo 4 — Monta e salva o Establishment
+		EstablishmentEntity entity = EstablishmentMapper.toEntity(dto);
+		entity.setCnpj(cnpjNormalizado);
+		entity.setAddress(address);
 
-        // Passo 5 — Cria o primeiro Profile (GESTOR) do ownerId
-        ProfileEntity profile = new ProfileEntity();
-        profile.setEstablishment(saved);
-        profile.setOwnerId(dto.ownerId());
-        profile.setRole(ProfileEntity.ProfileRole.GESTOR);
-        profileRepository.save(profile);
+		// Regra: TermsOfUse.Accepted = true para persistir
+		entity.setTermsAccepted(true);
+		entity.setTermsAcceptedAt(LocalDateTime.now());
 
-        return new EstablishmentResponseDTO(saved);
-    }
+		// Regra: TrialPeriod iniciado automaticamente (30 dias)
+		LocalDateTime now = LocalDateTime.now();
+		entity.setTrialStartDate(now);
+		entity.setTrialEndDate(now.plusDays(TRIAL_DAYS));
 
-    // ------------------------------------------------------------------ CRUD
+		EstablishmentEntity saved = establishmentRepository.save(entity);
 
-    @Transactional(readOnly = true)
-    public EstablishmentResponseDTO findById(UUID id) {
-        EstablishmentEntity entity = getOrThrow(id);
-        return new EstablishmentResponseDTO(entity);
-    }
+		// Passo 5 — Cria o primeiro Profile (GESTOR) do ownerId
+		ProfileEntity profile = new ProfileEntity();
+		profile.setEstablishment(saved);
+		profile.setOwnerId(dto.ownerId());
+		profile.setRole(ProfileEntity.ProfileRole.GESTOR);
+		profileRepository.save(profile);
 
-    /**
-     * Atualização parcial — botão "Salvar" da tela Empresa.
-     * Se o CEP mudar, re-consulta o ViaCEP automaticamente.
-     */
-    @Transactional
-    public EstablishmentResponseDTO update(UUID id, EstablishmentUpdateDTO dto) {
-        EstablishmentEntity entity = getOrThrow(id);
+		return new EstablishmentResponseDTO(saved);
+	}
 
-        EstablishmentMapper.updateEntity(entity, dto);
+	// ------------------------------------------------------------------ CRUD
 
-        // Atualiza endereço se informado
-        if (dto.address() != null) {
-            AddressUpdateDTO addrDto = dto.address();
-            String novoCep = addrDto.cep();
+	@Transactional(readOnly = true)
+	public EstablishmentResponseDTO findById(UUID id) {
+		EstablishmentEntity entity = getOrThrow(id);
+		return new EstablishmentResponseDTO(entity);
+	}
 
-            // Re-consulta ViaCEP apenas se o CEP foi alterado
-            boolean cepMudou = novoCep != null && !novoCep.isBlank() &&
-                    !novoCep.replaceAll("[^0-9]", "")
-                            .equals(entity.getAddress() != null ? entity.getAddress().getCep() : "");
+	/**
+	 * Atualização parcial — botão "Salvar" da tela Empresa. Se o CEP mudar, re-consulta o
+	 * ViaCEP automaticamente.
+	 */
+	@Transactional
+	public EstablishmentResponseDTO update(UUID id, EstablishmentUpdateDTO dto) {
+		EstablishmentEntity entity = getOrThrow(id);
 
-            if (cepMudou) {
-                AddressEmbeddable novoEndereco = viaCepService.buscarEPreencherEndereco(
-                        novoCep, addrDto.number(), addrDto.complement()
-                );
-                if (novoEndereco == null) {
-                    novoEndereco = buildManualAddressFromUpdate(entity, addrDto);
-                }
-                EstablishmentMapper.updateAddress(entity, novoEndereco);
-            } else {
-                // Apenas atualiza número/complemento sem re-chamar ViaCEP
-                if (entity.getAddress() != null) {
-                    if (addrDto.number() != null) entity.getAddress().setNumber(addrDto.number());
-                    if (addrDto.complement() != null) entity.getAddress().setComplement(addrDto.complement());
-                }
-            }
-        }
+		EstablishmentMapper.updateEntity(entity, dto);
 
-        EstablishmentEntity saved = establishmentRepository.save(entity);
-        return new EstablishmentResponseDTO(saved);
-    }
+		// Atualiza endereço se informado
+		if (dto.address() != null) {
+			AddressUpdateDTO addrDto = dto.address();
+			String novoCep = addrDto.cep();
 
-    /**
-     * Soft delete — desativa o establishment sem remover do banco.
-     */
-    @Transactional
-    public void delete(UUID id) {
-        EstablishmentEntity entity = getOrThrow(id);
-        entity.setActive(false);
-        establishmentRepository.save(entity);
-    }
+			// Re-consulta ViaCEP apenas se o CEP foi alterado
+			boolean cepMudou = novoCep != null && !novoCep.isBlank() && !novoCep.replaceAll("[^0-9]", "")
+				.equals(entity.getAddress() != null ? entity.getAddress().getCep() : "");
 
-    // ------------------------------------------------------------------ UC03
+			if (cepMudou) {
+				AddressEmbeddable novoEndereco = viaCepService.buscarEPreencherEndereco(novoCep, addrDto.number(),
+						addrDto.complement());
+				if (novoEndereco == null) {
+					novoEndereco = buildManualAddressFromUpdate(entity, addrDto);
+				}
+				EstablishmentMapper.updateAddress(entity, novoEndereco);
+			}
+			else {
+				// Apenas atualiza número/complemento sem re-chamar ViaCEP
+				if (entity.getAddress() != null) {
+					if (addrDto.number() != null)
+						entity.getAddress().setNumber(addrDto.number());
+					if (addrDto.complement() != null)
+						entity.getAddress().setComplement(addrDto.complement());
+				}
+			}
+		}
 
-    /**
-     * UC03 — Busca o establishment vinculado ao ownerId.
-     * Fluxo alternativo 1a: não encontrado → 404.
-     */
-    @Transactional(readOnly = true)
-    public EstablishmentResponseDTO findByOwnerId(UUID ownerId) {
-        EstablishmentEntity entity = establishmentRepository
-                .findFirstByOwnerIdAndActiveTrue(ownerId)
-                .orElseThrow(() -> new EntityNotFoundException("Estabelecimento para o proprietário", ownerId));
-        return new EstablishmentResponseDTO(entity);
-    }
+		EstablishmentEntity saved = establishmentRepository.save(entity);
+		return new EstablishmentResponseDTO(saved);
+	}
 
-    // ------------------------------------------------------------------ UC04
+	/**
+	 * Soft delete — desativa o establishment sem remover do banco.
+	 */
+	@Transactional
+	public void delete(UUID id) {
+		EstablishmentEntity entity = getOrThrow(id);
+		entity.setActive(false);
+		establishmentRepository.save(entity);
+	}
 
-    /**
-     * UC04 — Registra o aceite dos termos de uso.
-     * Fluxo alternativo 2a: se chamado com recusa, mantém termsAccepted=false.
-     */
-    @Transactional
-    public EstablishmentResponseDTO acceptTerms(UUID id) {
-        EstablishmentEntity entity = getOrThrow(id);
-        entity.setTermsAccepted(true);
-        entity.setTermsAcceptedAt(LocalDateTime.now());
-        return new EstablishmentResponseDTO(establishmentRepository.save(entity));
-    }
+	// ------------------------------------------------------------------ UC03
 
-    // ------------------------------------------------------------------ UC05
+	/**
+	 * UC03 — Busca o establishment vinculado ao ownerId. Fluxo alternativo 1a: não
+	 * encontrado → 404.
+	 */
+	@Transactional(readOnly = true)
+	public EstablishmentResponseDTO findByOwnerId(UUID ownerId) {
+		EstablishmentEntity entity = establishmentRepository.findFirstByOwnerIdAndActiveTrue(ownerId)
+			.orElseThrow(() -> new EntityNotFoundException("Estabelecimento para o proprietário", ownerId));
+		return new EstablishmentResponseDTO(entity);
+	}
 
-    /**
-     * UC05 — Retorna o status do trial com dias restantes calculados.
-     * warningActive = true quando restam <= 7 dias.
-     */
-    @Transactional(readOnly = true)
-    public TrialStatusDTO getTrialStatus(UUID id) {
-        EstablishmentEntity entity = getOrThrow(id);
-        LocalDateTime now = LocalDateTime.now();
-        long daysRemaining = Math.max(0, ChronoUnit.DAYS.between(now, entity.getTrialEndDate()));
-        boolean trialExpired = now.isAfter(entity.getTrialEndDate());
-        boolean trialActive = !trialExpired;
-        boolean warningActive = trialActive && daysRemaining <= 7;
+	// ------------------------------------------------------------------ UC04
 
-        return new TrialStatusDTO(
-                entity.getId(),
-                entity.getTrialStartDate(),
-                entity.getTrialEndDate(),
-                daysRemaining,
-                trialActive,
-                warningActive,
-                trialExpired
-        );
-    }
+	/**
+	 * UC04 — Registra o aceite dos termos de uso. Fluxo alternativo 2a: se chamado com
+	 * recusa, mantém termsAccepted=false.
+	 */
+	@Transactional
+	public EstablishmentResponseDTO acceptTerms(UUID id) {
+		EstablishmentEntity entity = getOrThrow(id);
+		entity.setTermsAccepted(true);
+		entity.setTermsAcceptedAt(LocalDateTime.now());
+		return new EstablishmentResponseDTO(establishmentRepository.save(entity));
+	}
 
-    // ------------------------------------------------------------------ helpers
+	// ------------------------------------------------------------------ UC05
 
-    private EstablishmentEntity getOrThrow(UUID id) {
-        return establishmentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Estabelecimento", id));
-    }
+	/**
+	 * UC05 — Retorna o status do trial com dias restantes calculados. warningActive =
+	 * true quando restam <= 7 dias.
+	 */
+	@Transactional(readOnly = true)
+	public TrialStatusDTO getTrialStatus(UUID id) {
+		EstablishmentEntity entity = getOrThrow(id);
+		LocalDateTime now = LocalDateTime.now();
+		long daysRemaining = Math.max(0, ChronoUnit.DAYS.between(now, entity.getTrialEndDate()));
+		boolean trialExpired = now.isAfter(entity.getTrialEndDate());
+		boolean trialActive = !trialExpired;
+		boolean warningActive = trialActive && daysRemaining <= 7;
 
-    /** Normaliza o CNPJ removendo pontuação e valida o formato (14 dígitos). */
-    private String normalizarCnpj(String cnpj) {
-        if (cnpj == null) throw new BusinessException("CNPJ é obrigatório.");
-        String normalizado = cnpj.replaceAll("[^0-9]", "");
-        if (normalizado.length() != 14) {
-            throw new BusinessException("CNPJ inválido — deve conter 14 dígitos numéricos: " + cnpj);
-        }
-        return normalizado;
-    }
+		return new TrialStatusDTO(entity.getId(), entity.getTrialStartDate(), entity.getTrialEndDate(), daysRemaining,
+				trialActive, warningActive, trialExpired);
+	}
 
-    /** UC01 6b — monta endereço com dados manuais enviados pelo frontend. */
-    private AddressEmbeddable buildManualAddress(AddressCreateDTO dto) {
-        return new AddressEmbeddable(
-                dto.cep() != null ? dto.cep().replaceAll("[^0-9]", "") : null,
-                dto.street(),
-                dto.number(),
-                dto.complement(),
-                dto.neighborhood(),
-                dto.city(),
-                dto.state()
-        );
-    }
+	// ------------------------------------------------------------------ helpers
 
-    /** UC01 6b — variante para update: preserva campos existentes se não informados. */
-    private AddressEmbeddable buildManualAddressFromUpdate(EstablishmentEntity entity, AddressUpdateDTO dto) {
-        AddressEmbeddable existing = entity.getAddress() != null ? entity.getAddress() : new AddressEmbeddable();
-        return new AddressEmbeddable(
-                dto.cep() != null ? dto.cep().replaceAll("[^0-9]", "") : existing.getCep(),
-                dto.street() != null ? dto.street() : existing.getStreet(),
-                dto.number() != null ? dto.number() : existing.getNumber(),
-                dto.complement() != null ? dto.complement() : existing.getComplement(),
-                dto.neighborhood() != null ? dto.neighborhood() : existing.getNeighborhood(),
-                dto.city() != null ? dto.city() : existing.getCity(),
-                dto.state() != null ? dto.state() : existing.getState()
-        );
-    }
+	private EstablishmentEntity getOrThrow(UUID id) {
+		return establishmentRepository.findById(id)
+			.orElseThrow(() -> new EntityNotFoundException("Estabelecimento", id));
+	}
+
+	/**
+	 * Normaliza o CNPJ removendo pontuação e valida formato (14 dígitos) e verificadores.
+	 */
+	private String normalizarCnpj(String cnpj) {
+		if (cnpj == null)
+			throw new BusinessException("CNPJ é obrigatório.");
+		String normalizado = cnpj.replaceAll("[^0-9]", "");
+		if (normalizado.length() != 14) {
+			throw new BusinessException("CNPJ inválido — deve conter 14 dígitos numéricos: " + cnpj);
+		}
+		if (!CnpjValidator.isValid(normalizado)) {
+			throw new BusinessException("CNPJ inválido — dígito verificador incorreto: " + cnpj);
+		}
+		return normalizado;
+	}
+
+	/** UC01 6b — monta endereço com dados manuais enviados pelo frontend. */
+	private AddressEmbeddable buildManualAddress(AddressCreateDTO dto) {
+		return new AddressEmbeddable(dto.cep() != null ? dto.cep().replaceAll("[^0-9]", "") : null, dto.street(),
+				dto.number(), dto.complement(), dto.neighborhood(), dto.city(), dto.state());
+	}
+
+	/** UC01 6b — variante para update: preserva campos existentes se não informados. */
+	private AddressEmbeddable buildManualAddressFromUpdate(EstablishmentEntity entity, AddressUpdateDTO dto) {
+		AddressEmbeddable existing = entity.getAddress() != null ? entity.getAddress() : new AddressEmbeddable();
+		return new AddressEmbeddable(dto.cep() != null ? dto.cep().replaceAll("[^0-9]", "") : existing.getCep(),
+				dto.street() != null ? dto.street() : existing.getStreet(),
+				dto.number() != null ? dto.number() : existing.getNumber(),
+				dto.complement() != null ? dto.complement() : existing.getComplement(),
+				dto.neighborhood() != null ? dto.neighborhood() : existing.getNeighborhood(),
+				dto.city() != null ? dto.city() : existing.getCity(),
+				dto.state() != null ? dto.state() : existing.getState());
+	}
+
 }

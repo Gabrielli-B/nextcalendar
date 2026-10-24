@@ -1,39 +1,56 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Frontend (Expo) — atalhos
+#
+# Execute a partir de frontend/: `make start`, `make help`, etc.
+# Para os atalhos gerais do monorepo, use o Makefile da raiz do projeto.
+# ─────────────────────────────────────────────────────────────────────────────
+
+.DEFAULT_GOAL := help
+
+C_CYAN  := \033[36m
+C_RESET := \033[0m
+
+# Detecta Windows (GNU Make define OS=Windows_NT nas plataformas Windows)
+ifeq ($(OS),Windows_NT)
+  RM_DIR := rd /s /q
+else
+  RM_DIR := rm -rf
+endif
+
 .PHONY: help start android ios web install clean reset lint
 
-HELP_PREFIX := \033[36m
-HELP_SUFFIX := \033[0m
-
 help:
-	@echo "$(HELP_PREFIX)Comandos disponíveis — Frontend:$(HELP_SUFFIX)"
-	@echo "  make help             Exibe esta ajuda"
-	@echo "  make start            Inicia o Expo (modo interativo)"
-	@echo "  make android          Inicia no Android"
-	@echo "  make ios              Inicia no iOS"
-	@echo "  make web              Inicia no browser"
-	@echo "  make install          Instala as dependências (npm install)"
-	@echo "  make lint             Executa o linter"
-	@echo "  make clean            Remove node_modules"
-	@echo "  make reset            Remove node_modules e reinstala"
+	@printf '%b\n' \
+	  "$(C_CYAN)Comandos disponíveis — Frontend:$(C_RESET)" \
+	  "  make help             Exibe esta ajuda" \
+	  "  make start            Inicia o Expo (modo interativo)" \
+	  "  make android          Inicia no Android" \
+	  "  make ios              Inicia no iOS" \
+	  "  make web              Inicia no browser" \
+	  "  make install          Instala as dependências (npm install)" \
+	  "  make lint             Executa o linter" \
+	  "  make clean            Remove node_modules" \
+	  "  make reset            Remove node_modules e reinstala"
 
 start:
-	@cd frontend && npx expo start
+	@npm start
 
 android:
-	@cd frontend && npx expo start --android
+	@npm run android
 
 ios:
-	@cd frontend && npx expo start --ios
+	@npm run ios
 
 web:
-	@cd frontend && npx expo start --web
+	@npm run web
 
 install:
-	@cd frontend && npm install
+	@npm install
 
 lint:
-	@cd frontend && npx expo lint
+	@npm run lint
 
 clean:
-	@cd frontend && rd /s /q node_modules
+	@$(RM_DIR) node_modules
 
 reset: clean install

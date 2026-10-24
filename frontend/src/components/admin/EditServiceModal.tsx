@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -191,9 +191,18 @@ export function EditServiceModal({ visible, service, onClose, onSubmit, onDelete
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
-  // Preenche o formulário sempre que um novo serviço for selecionado para edição.
-  // O valor vindo da API é numérico (ex: 45.0) — convertemos para máscara BRL.
-  useEffect(() => {
+  /**
+   * Preenche o formulário sempre que um novo serviço for selecionado para edição.
+   * O valor vindo da API é numérico (ex: 45.0) — convertemos para máscara BRL.
+   *
+   * Padrão "ajustar estado no render" (react.dev) em vez de efeito com
+   * `setState` síncrono (`react-hooks/set-state-in-effect`).
+   */
+  const [prevService, setPrevService] = useState(service);
+
+  if (prevService !== service) {
+    setPrevService(service);
+
     if (service) {
       setName(service.name);
       setCategory(service.category);
@@ -206,7 +215,7 @@ export function EditServiceModal({ visible, service, onClose, onSubmit, onDelete
       setDuration(nearest);
       setError('');
     }
-  }, [service]);
+  }
 
   async function handleSave() {
     if (!service) return;

@@ -15,36 +15,36 @@ import java.util.UUID;
 @RequestMapping("/api/v1/professionals")
 public class ProfessionalMeController {
 
-    private final ProfessionalService professionalService;
-    private final AppointmentService appointmentService;
+	private final ProfessionalService professionalService;
 
-    public ProfessionalMeController(ProfessionalService professionalService,
-                                  AppointmentService appointmentService) {
-        this.professionalService = professionalService;
-        this.appointmentService = appointmentService;
-    }
+	private final AppointmentService appointmentService;
 
-    @GetMapping("/me")
-    public ProfessionalMeResponseDTO getMe() {
-        return professionalService.getMe();
-    }
+	public ProfessionalMeController(ProfessionalService professionalService, AppointmentService appointmentService) {
+		this.professionalService = professionalService;
+		this.appointmentService = appointmentService;
+	}
 
-    @GetMapping("/by-user/{userId}")
-    public ProfessionalMeResponseDTO getByUserId(@PathVariable UUID userId) {
-        return professionalService.findByUserId(userId);
-    }
+	@GetMapping("/me")
+	public ProfessionalMeResponseDTO getMe() {
+		return professionalService.getMe();
+	}
 
-    @GetMapping("/me/{userId}")
-    public ProfessionalMeResponseDTO getMyProfile(@PathVariable UUID userId) {
-        return professionalService.findByUserId(userId);
-    }
+	@GetMapping("/by-user/{userId}")
+	public ProfessionalMeResponseDTO getByUserId(@PathVariable UUID userId) {
+		return professionalService.findByUserId(userId);
+	}
 
-    @GetMapping("/me/appointments")
-    public List<AppointmentResponseDTO> getMyAppointments(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
-    ) {
-        return appointmentService.findMyAppointments(date, from, to);
-    }
+	@GetMapping("/me/{userId}")
+	public ProfessionalMeResponseDTO getMyProfile(@PathVariable UUID userId) {
+		return professionalService.findByUserId(userId);
+	}
+
+	@GetMapping("/me/appointments")
+	public List<AppointmentResponseDTO> getMyAppointments(
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+		return appointmentService.findMyAppointments(date, from, to);
+	}
+
 }

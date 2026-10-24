@@ -17,110 +17,107 @@ import java.util.UUID;
 @RequestMapping("/api/v1")
 public class EstablishmentController implements EstablishmentApi {
 
-    private final EstablishmentService establishmentService;
-    private final ViaCepService viaCepService;
+	private final EstablishmentService establishmentService;
 
-    public EstablishmentController(EstablishmentService establishmentService, ViaCepService viaCepService) {
-        this.establishmentService = establishmentService;
-        this.viaCepService = viaCepService;
-    }
+	private final ViaCepService viaCepService;
 
-    // ------------------------------------------------------------------ Establishment CRUD
+	public EstablishmentController(EstablishmentService establishmentService, ViaCepService viaCepService) {
+		this.establishmentService = establishmentService;
+		this.viaCepService = viaCepService;
+	}
 
-    /**
-     * UC01 — POST /api/v1/establishments
-     * Cria o estabelecimento com trial (30 dias) + Profile GESTOR automaticamente.
-     */
-    @Override
-    @PostMapping("/establishments")
-    @ResponseStatus(HttpStatus.CREATED)
-    public EstablishmentResponseDTO create(@Valid @RequestBody EstablishmentCreateDTO dto) {
-        return establishmentService.createEstablishment(dto);
-    }
+	// ------------------------------------------------------------------ Establishment
+	// CRUD
 
-    /**
-     * GET /api/v1/establishments/{id}
-     * Retorna os dados do estabelecimento — usado ao abrir a tela Empresa.
-     */
-    @Override
-    @GetMapping("/establishments/{id}")
-    public EstablishmentResponseDTO findById(@PathVariable UUID id) {
-        return establishmentService.findById(id);
-    }
+	/**
+	 * UC01 — POST /api/v1/establishments Cria o estabelecimento com trial (30 dias) +
+	 * Profile GESTOR automaticamente.
+	 */
+	@Override
+	@PostMapping("/establishments")
+	@ResponseStatus(HttpStatus.CREATED)
+	public EstablishmentResponseDTO create(@Valid @RequestBody EstablishmentCreateDTO dto) {
+		return establishmentService.createEstablishment(dto);
+	}
 
-    /**
-     * PUT /api/v1/establishments/{id}
-     * Atualização parcial — botão "Salvar" da tela Empresa.
-     * UC06: dados inválidos retornam 422.
-     */
-    @Override
-    @PutMapping("/establishments/{id}")
-    public EstablishmentResponseDTO update(
-            @PathVariable UUID id,
-            @Valid @RequestBody EstablishmentUpdateDTO dto
-    ) {
-        return establishmentService.update(id, dto);
-    }
+	/**
+	 * GET /api/v1/establishments/{id} Retorna os dados do estabelecimento — usado ao
+	 * abrir a tela Empresa.
+	 */
+	@Override
+	@GetMapping("/establishments/{id}")
+	public EstablishmentResponseDTO findById(@PathVariable UUID id) {
+		return establishmentService.findById(id);
+	}
 
-    /**
-     * DELETE /api/v1/establishments/{id}
-     * Soft delete — desativa o estabelecimento (não remove do banco).
-     */
-    @Override
-    @DeleteMapping("/establishments/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID id) {
-        establishmentService.delete(id);
-    }
+	/**
+	 * PUT /api/v1/establishments/{id} Atualização parcial — botão "Salvar" da tela
+	 * Empresa. UC06: dados inválidos retornam 422.
+	 */
+	@Override
+	@PutMapping("/establishments/{id}")
+	public EstablishmentResponseDTO update(@PathVariable UUID id, @Valid @RequestBody EstablishmentUpdateDTO dto) {
+		return establishmentService.update(id, dto);
+	}
 
-    // ------------------------------------------------------------------ UC03
+	/**
+	 * DELETE /api/v1/establishments/{id} Soft delete — desativa o estabelecimento (não
+	 * remove do banco).
+	 */
+	@Override
+	@DeleteMapping("/establishments/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void delete(@PathVariable UUID id) {
+		establishmentService.delete(id);
+	}
 
-    /**
-     * UC03 — GET /api/v1/establishments/owner/{ownerId}
-     * Busca o establishment vinculado ao usuário autenticado.
-     * Fluxo alternativo 1a: 404 se não encontrado.
-     */
-    @Override
-    @GetMapping("/establishments/owner/{ownerId}")
-    public EstablishmentResponseDTO findByOwner(@PathVariable UUID ownerId) {
-        return establishmentService.findByOwnerId(ownerId);
-    }
+	// ------------------------------------------------------------------ UC03
 
-    // ------------------------------------------------------------------ UC04
+	/**
+	 * UC03 — GET /api/v1/establishments/owner/{ownerId} Busca o establishment vinculado
+	 * ao usuário autenticado. Fluxo alternativo 1a: 404 se não encontrado.
+	 */
+	@Override
+	@GetMapping("/establishments/owner/{ownerId}")
+	public EstablishmentResponseDTO findByOwner(@PathVariable UUID ownerId) {
+		return establishmentService.findByOwnerId(ownerId);
+	}
 
-    /**
-     * UC04 — PATCH /api/v1/establishments/{id}/terms
-     * Registra aceite dos termos de uso e retorna dados atualizados.
-     * Fluxo alternativo 2a: não chamar este endpoint = termsAccepted permanece false.
-     */
-    @Override
-    @PatchMapping("/establishments/{id}/terms")
-    public EstablishmentResponseDTO acceptTerms(@PathVariable UUID id) {
-        return establishmentService.acceptTerms(id);
-    }
+	// ------------------------------------------------------------------ UC04
 
-    // ------------------------------------------------------------------ UC05
+	/**
+	 * UC04 — PATCH /api/v1/establishments/{id}/terms Registra aceite dos termos de uso e
+	 * retorna dados atualizados. Fluxo alternativo 2a: não chamar este endpoint =
+	 * termsAccepted permanece false.
+	 */
+	@Override
+	@PatchMapping("/establishments/{id}/terms")
+	public EstablishmentResponseDTO acceptTerms(@PathVariable UUID id) {
+		return establishmentService.acceptTerms(id);
+	}
 
-    /**
-     * UC05 — GET /api/v1/establishments/{id}/trial
-     * Retorna status do trial: dias restantes, aviso (<= 7 dias) e se está expirado.
-     */
-    @Override
-    @GetMapping("/establishments/{id}/trial")
-    public TrialStatusDTO getTrialStatus(@PathVariable UUID id) {
-        return establishmentService.getTrialStatus(id);
-    }
+	// ------------------------------------------------------------------ UC05
 
-    // ------------------------------------------------------------------ ViaCEP
+	/**
+	 * UC05 — GET /api/v1/establishments/{id}/trial Retorna status do trial: dias
+	 * restantes, aviso (<= 7 dias) e se está expirado.
+	 */
+	@Override
+	@GetMapping("/establishments/{id}/trial")
+	public TrialStatusDTO getTrialStatus(@PathVariable UUID id) {
+		return establishmentService.getTrialStatus(id);
+	}
 
-    /**
-     * GET /api/v1/cep/{cep}
-     * Consulta a API do ViaCEP para preenchimento automático de endereço.
-     * UC01 6a: CEP inválido → 422. UC01 6b: API indisponível → 503.
-     */
-    @Override
-    @GetMapping("/cep/{cep}")
-    public ViaCepResponseDTO consultarCep(@PathVariable String cep) {
-        return viaCepService.consultar(cep);
-    }
+	// ------------------------------------------------------------------ ViaCEP
+
+	/**
+	 * GET /api/v1/cep/{cep} Consulta a API do ViaCEP para preenchimento automático de
+	 * endereço. UC01 6a: CEP inválido → 422. UC01 6b: API indisponível → 503.
+	 */
+	@Override
+	@GetMapping("/cep/{cep}")
+	public ViaCepResponseDTO consultarCep(@PathVariable String cep) {
+		return viaCepService.consultar(cep);
+	}
+
 }

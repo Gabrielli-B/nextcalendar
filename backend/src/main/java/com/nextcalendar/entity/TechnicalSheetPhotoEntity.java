@@ -17,17 +17,18 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TechnicalSheetPhotoEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "entry_id", nullable = false)
-    private TechnicalSheetEntryEntity entry;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "entry_id", nullable = false)
+	private TechnicalSheetEntryEntity entry;
 
-    @Column(nullable = false)
-    private String photoUrl;
+	@Column(nullable = false)
+	private String photoUrl;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+	@Column(nullable = false, updatable = false)
+	private LocalDateTime createdAt;
+
 }

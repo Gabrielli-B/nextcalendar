@@ -76,7 +76,7 @@ function formatAppointmentToBooking(appt: Appointment): Booking {
   const computedStatus: Booking['status'] =
     appt.status === 'CANCELLED'
       ? 'cancelled'
-      : isPast || appt.status === 'COMPLETED'
+      : isPast || appt.status === 'DONE'
       ? 'done'
       : 'upcoming';
 
@@ -125,6 +125,16 @@ export default function BookingTabScreen() {
 
   const [activeTab, setActiveTab] =
     useState<BookingTab>('Próximo');
+
+  /**
+   * Instantâneo do relógio, capturado uma única vez por montagem.
+   *
+   * `Date.now()` no corpo do render é impuro (react-hooks/purity); o
+   * inicializador lazy do `useState` roda uma vez e vira fonte estável de
+   * "agora" para filtragem. `loadBookings` recarrega ao ganhar foco, então o
+   * relógio é renovado junto com os dados.
+   */
+  const [now] = useState(() => Date.now());
 
   const [reminders, setReminders] =
     useState<Record<string, boolean>>({});
@@ -237,7 +247,7 @@ export default function BookingTabScreen() {
 
     const isFuture = b.startDateTimeRaw
       ? new Date(b.startDateTimeRaw).getTime() >
-        Date.now()
+        now
       : b.status === 'upcoming';
 
     if (activeTab === 'Próximo') {
@@ -780,6 +790,10 @@ function BookingCard({
   fontRegular,
   fontSemiBold,
 }: BookingCardProps) {
+  // Relógio capturado uma única vez por montagem (react-hooks/purity proíbe
+  // Date.now() direto no corpo do render).
+  const [now] = useState(() => Date.now());
+
   /**
    * Só é permitido remarcar ou cancelar quando
    * faltam MAIS de 2 horas para o horário.
@@ -795,7 +809,7 @@ function BookingCard({
     new Date(
       booking.startDateTimeRaw
     ).getTime() -
-      Date.now() >
+      now >
       2 * 60 * 60 * 1000;
 
   const canCancel =
@@ -803,7 +817,7 @@ function BookingCard({
     new Date(
       booking.startDateTimeRaw
     ).getTime() -
-      Date.now() >
+      now >
       2 * 60 * 60 * 1000;
 
   return (

@@ -19,40 +19,46 @@ import java.util.UUID;
 
 public class ProductController implements ProductApi {
 
-    private final ProductService productService;
+	private final ProductService productService;
 
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
+	public ProductController(ProductService productService) {
+		this.productService = productService;
+	}
 
+	@Override
+	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
+	public ProductMinResponseDTO createProduct(@Valid @RequestBody ProductCreateDTO productDTO,
+			@PathVariable UUID establishmentId) {
+		return productService.createProduct(establishmentId, productDTO);
+	}
 
-    @Override
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ProductMinResponseDTO createProduct(@Valid @RequestBody ProductCreateDTO productDTO, @PathVariable UUID establishmentId){
-        return productService.createProduct(establishmentId, productDTO);
-    }
+	@Override
+	@PutMapping("/{id}")
+	public ProductMinResponseDTO updateProduct(@PathVariable UUID establishmentId, @PathVariable("id") UUID idProduct,
+			@Valid @RequestBody ProductUpdateDTO productDTO) {
+		return productService.updateProduct(establishmentId, idProduct, productDTO);
+	}
 
-    @Override
-    @PutMapping("/{id}")
-    public ProductMinResponseDTO updateProduct(@PathVariable UUID establishmentId, @PathVariable("id") UUID idProduct, @Valid @RequestBody ProductUpdateDTO productDTO){
-        return productService.updateProduct(establishmentId, idProduct, productDTO);
-    }
+	@Override
+	@GetMapping("/search")
+	public Page<ProductMinResponseDTO> findProductsByName(@RequestParam(defaultValue = "") String name,
+			@PathVariable UUID establishmentId, @ParameterObject Pageable pageable) {
+		return productService.findProductsByName(name, establishmentId, pageable);
+	}
 
-    @Override
-    @GetMapping("/search")
-    public Page<ProductMinResponseDTO> findProductsByName(@RequestParam (defaultValue = "") String name, @PathVariable UUID establishmentId, @ParameterObject Pageable pageable){
-        return productService.findProductsByName(name, establishmentId, pageable);
-    }
+	@Override
+	@GetMapping
+	public Page<ProductMinResponseDTO> findAllProducts(@PathVariable UUID establishmentId,
+			@ParameterObject Pageable pageable) {
+		return productService.findAllProducts(establishmentId, pageable);
+	}
 
-    @Override
-    @GetMapping
-    public Page<ProductMinResponseDTO> findAllProducts(@PathVariable UUID establishmentId, @ParameterObject Pageable pageable) {
-        return productService.findAllProducts(establishmentId, pageable);
-    }
+	@Override
+	@DeleteMapping("/{id}")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void deleteProduct(@PathVariable UUID id) {
+		productService.deleteProduct(id);
+	}
 
-    @Override
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProduct(@PathVariable UUID id){productService.deleteProduct(id);}
 }

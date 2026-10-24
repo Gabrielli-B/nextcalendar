@@ -20,112 +20,116 @@ import java.util.UUID;
 
 @Service
 public class ServiceService {
-    private final ServiceRepository serviceRepository;
 
-    private final EstablishmentRepository establishmentRepository;
+	private final ServiceRepository serviceRepository;
 
-    private final ServiceMapper serviceMapper;
+	private final EstablishmentRepository establishmentRepository;
 
-    public ServiceService(ServiceRepository serviceRepository, ServiceMapper serviceMapper,EstablishmentRepository establishmentRepository) {
-        this.serviceRepository = serviceRepository;
-        this.establishmentRepository = establishmentRepository;
-        this.serviceMapper = serviceMapper;
-    }
+	private final ServiceMapper serviceMapper;
 
-    private EstablishmentEntity findEstablishment(UUID establishmentId) {
-        return establishmentRepository.findById(establishmentId)
-                .orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
-    }
+	public ServiceService(ServiceRepository serviceRepository, ServiceMapper serviceMapper,
+			EstablishmentRepository establishmentRepository) {
+		this.serviceRepository = serviceRepository;
+		this.establishmentRepository = establishmentRepository;
+		this.serviceMapper = serviceMapper;
+	}
 
-    @Transactional
-    public ServiceMinResponseDTO createService(UUID establishmentId, ServiceCreateDTO serviceDTO){
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para cadastrar ou alterar serviços.");
-            }
-        });
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+	private EstablishmentEntity findEstablishment(UUID establishmentId) {
+		return establishmentRepository.findById(establishmentId)
+			.orElseThrow(() -> new EntityNotFoundException("Estabelecimento", establishmentId));
+	}
 
-        if(serviceRepository.existsByNameAndEstablishmentAndActiveTrue(serviceDTO.name(),establishment)){
-            throw new BusinessException("Já existe um serviço com o nome "+serviceDTO.name()+" neste estabelecimento.");
-        }
+	@Transactional
+	public ServiceMinResponseDTO createService(UUID establishmentId, ServiceCreateDTO serviceDTO) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para cadastrar ou alterar serviços.");
+			}
+		});
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        ServiceEntity inactiveService = serviceRepository
-                .findByNameAndEstablishmentAndActiveFalse(serviceDTO.name(), establishment)
-                .orElse(null);
+		if (serviceRepository.existsByNameAndEstablishmentAndActiveTrue(serviceDTO.name(), establishment)) {
+			throw new BusinessException(
+					"Já existe um serviço com o nome " + serviceDTO.name() + " neste estabelecimento.");
+		}
 
-        if (inactiveService != null) {
-            serviceMapper.updateEntity(inactiveService, serviceDTO);
-            inactiveService.setActive(true);
+		ServiceEntity inactiveService = serviceRepository
+			.findByNameAndEstablishmentAndActiveFalse(serviceDTO.name(), establishment)
+			.orElse(null);
 
-            ServiceEntity reactivatedService = serviceRepository.save(inactiveService);
+		if (inactiveService != null) {
+			serviceMapper.updateEntity(inactiveService, serviceDTO);
+			inactiveService.setActive(true);
 
-            return new ServiceMinResponseDTO(reactivatedService);
-        }
+			ServiceEntity reactivatedService = serviceRepository.save(inactiveService);
 
+			return new ServiceMinResponseDTO(reactivatedService);
+		}
 
-        ServiceEntity service = serviceMapper.toEntity(serviceDTO,establishment);
-        ServiceEntity savedService = serviceRepository.save(service);
+		ServiceEntity service = serviceMapper.toEntity(serviceDTO, establishment);
+		ServiceEntity savedService = serviceRepository.save(service);
 
-        return new ServiceMinResponseDTO(savedService);
-    }
+		return new ServiceMinResponseDTO(savedService);
+	}
 
-    @Transactional
-    public ServiceMinResponseDTO updateService(UUID establishmentId, UUID idService, ServiceUpdateDTO serviceDTO){
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para cadastrar ou alterar serviços.");
-            }
-        });
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+	@Transactional
+	public ServiceMinResponseDTO updateService(UUID establishmentId, UUID idService, ServiceUpdateDTO serviceDTO) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para cadastrar ou alterar serviços.");
+			}
+		});
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        ServiceEntity serviceEntity = serviceRepository.findByIdAndEstablishmentAndActiveTrue(idService,establishment)
-                .orElseThrow(()->new EntityNotFoundException("Servico",idService));
+		ServiceEntity serviceEntity = serviceRepository.findByIdAndEstablishmentAndActiveTrue(idService, establishment)
+			.orElseThrow(() -> new EntityNotFoundException("Servico", idService));
 
-        if(serviceRepository.existsByNameAndEstablishmentAndActiveTrueAndIdNot(serviceDTO.name(),establishment,idService)){
-            throw new BusinessException( "Já existe um serviço com esse nome neste estabelecimento.");
-        }
+		if (serviceRepository.existsByNameAndEstablishmentAndActiveTrueAndIdNot(serviceDTO.name(), establishment,
+				idService)) {
+			throw new BusinessException("Já existe um serviço com esse nome neste estabelecimento.");
+		}
 
-        serviceMapper.updateEntity(serviceEntity, serviceDTO);
+		serviceMapper.updateEntity(serviceEntity, serviceDTO);
 
-        ServiceEntity updatedService = serviceRepository.save(serviceEntity);
+		ServiceEntity updatedService = serviceRepository.save(serviceEntity);
 
-        return new ServiceMinResponseDTO(updatedService);
-    }
+		return new ServiceMinResponseDTO(updatedService);
+	}
 
-    @Transactional(readOnly = true)
-    public Page<ServiceMinResponseDTO> findServicesByName(String searchName, UUID establishmentId, Pageable pageable){
+	@Transactional(readOnly = true)
+	public Page<ServiceMinResponseDTO> findServicesByName(String searchName, UUID establishmentId, Pageable pageable) {
 
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        return serviceRepository.findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(establishment,searchName,pageable)
-                .map(ServiceMinResponseDTO::new);
-    }
+		return serviceRepository
+			.findByEstablishmentAndNameContainingIgnoreCaseAndActiveTrue(establishment, searchName, pageable)
+			.map(ServiceMinResponseDTO::new);
+	}
 
+	@Transactional(readOnly = true)
+	public Page<ServiceMinResponseDTO> findAllServices(UUID establishmentId, Pageable pageable) {
 
-    @Transactional(readOnly = true)
-    public  Page<ServiceMinResponseDTO> findAllServices(UUID establishmentId, Pageable pageable){
+		EstablishmentEntity establishment = findEstablishment(establishmentId);
 
-        EstablishmentEntity establishment = findEstablishment(establishmentId);
+		return serviceRepository.findByEstablishmentAndActiveTrue(establishment, pageable)
+			.map(ServiceMinResponseDTO::new);
+	}
 
-        return serviceRepository.findByEstablishmentAndActiveTrue(establishment,pageable)
-                .map(ServiceMinResponseDTO::new);
-    }
+	@Transactional
+	public void deleteService(UUID id) {
+		com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
+			if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Profissionais não têm permissão para excluir serviços.");
+			}
+		});
+		ServiceEntity service = serviceRepository.findByIdAndActiveTrue(id)
+			.orElseThrow(() -> new EntityNotFoundException("Serviço", id));
 
+		service.setActive(false);
+		serviceRepository.save(service);
+	}
 
-    @Transactional
-    public void deleteService(UUID id){
-        com.nextcalendar.config.SecurityUtils.getAuthenticatedUser().ifPresent(u -> {
-            if (u.getRole() == com.nextcalendar.entity.UserRole.PROFESSIONAL) {
-                throw new org.springframework.security.access.AccessDeniedException("Profissionais não têm permissão para excluir serviços.");
-            }
-        });
-        ServiceEntity service = serviceRepository.findByIdAndActiveTrue(id)
-                .orElseThrow(()->new EntityNotFoundException("Serviço",id));
-
-        service.setActive(false);
-        serviceRepository.save(service);
-    }
-    
 }
-
